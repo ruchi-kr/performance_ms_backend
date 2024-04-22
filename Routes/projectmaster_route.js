@@ -2,20 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mysql = require("mysql");
 const protectedRoute = require("../middleware/protectedResource");
-
-// MySQL connection
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'performancems'
-});
-
-connection.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL database');
-});
-
+const connection =require("../db");
 
 
 // API FOR PROJECT CRUD

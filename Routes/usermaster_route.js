@@ -2,19 +2,8 @@ const express = require('express');
 const router = express.Router();
 const mysql = require("mysql");
 const bcrypt = require('bcryptjs');
+const connection =require("../db");
 
-// MySQL connection
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'performancems'
-});
-
-connection.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL database');
-});
 
 // API FOR USER CRUD
 

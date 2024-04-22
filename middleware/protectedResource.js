@@ -2,19 +2,7 @@ const jwt = require("jsonwebtoken");                               //importing j
 const  { JWT_SECRET } = require('../Config');                         //importing JWT_SECRET we created in config
 const { StatusCodes } = require ( "http-status-codes");
 const mysql = require("mysql");
-
-// MySQL connection
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'performancems'
-});
-
-connection.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL database');
-});
+const connection =require("../db");
 
 
 
