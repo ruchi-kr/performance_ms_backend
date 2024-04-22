@@ -23,13 +23,13 @@ const connection =require("../db");
   
 
 router.post('/api/admin/addUser', async (req, res) => {
-    const { username, status, user_type, password, employee_id } = req.body;
+    const { username,role, status, user_type, password, employee_id } = req.body;
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const query = 'INSERT INTO user_master (username, status, user_type, password, hashed_password, employee_id) VALUES (?, ?, ?, ?, ?, ?)';
-        const values = [username, status, user_type, password, hashedPassword, employee_id];
+        const query = 'INSERT INTO user_master (username,role, status, user_type, password, hashed_password, employee_id) VALUES (?, ?, ?, ?, ?, ?,?)';
+        const values = [username,role, status, user_type, password, hashedPassword, employee_id];
 
         connection.query(query, values, (err, results) => {
             if (err) throw err;
@@ -44,7 +44,7 @@ router.post('/api/admin/addUser', async (req, res) => {
 
   // GET
   router.get('/api/admin/getUsers', (req, res) => {
-    const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um RIGHT JOIN employee_master as em On em.employee_id = um.employee_id';
+    const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id';
     connection.query(query, (err, results) => {
       if (err) throw err;
       console.log(results);
@@ -62,7 +62,7 @@ router.post('/api/admin/addUser', async (req, res) => {
     }
   
     const fetchQuery = 'SELECT * FROM user_master WHERE user_id=?';
-    const updateQuery = 'UPDATE user_master SET username=?, status =?, user_type=?, password=? WHERE user_id=?';
+    const updateQuery = 'UPDATE user_master SET username=?,email_id=?,role=?, status =?, user_type=?, password=? WHERE user_id=?';
   
     // Fetch project by ID
     connection.query(fetchQuery, [UserId], (fetchErr, fetchResults) => {
@@ -75,10 +75,10 @@ router.post('/api/admin/addUser', async (req, res) => {
       }
   
       const existingUser = fetchResults[0];
-      const { username, status, user_type, password} = req.body;
+      const { username,email_id,role, status, user_type, password} = req.body;
   
       // Update project data
-      connection.query(updateQuery, [username, status, user_type, password, UserId], (updateErr, updateResults) => {
+      connection.query(updateQuery, [username,email_id,role, status, user_type, password, UserId], (updateErr, updateResults) => {
         if (updateErr) {
           return res.status(500).send('Error updating user');
         }

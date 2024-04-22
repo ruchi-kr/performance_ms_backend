@@ -7,15 +7,33 @@ const connection =require("../db");
 // api for employee CRUD
 
 // CREATE
-router.post('/api/admin/addEmployee', (req, res) => {
-    const {name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id} = req.body;
-    const query = 'INSERT INTO employee_master ( name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id) VALUES (?, ?, ?,?,?,?,?,?)';
-    connection.query(query, [name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id], (err, results) => {
-      if (err) throw err;
-      res.status(200).send('Employee Added Successfully');
+// router.post('/api/admin/addEmployee', (req, res) => {
+//     const {name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id} = req.body;
+//     const query = 'INSERT INTO employee_master ( name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id) VALUES (?, ?, ?,?,?,?,?,?)';
+//     connection.query(query, [name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id], (err, results) => {
+//       if (err) throw err;
+//       res.status(200).send('Employee Added Successfully');
+//     });
+//   });
+  router.post('/api/admin/addEmployee', (req, res) => {
+    const { name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id } = req.body;
+  
+    // Check if email already exists
+    const checkQuery = 'SELECT COUNT(*) as count FROM employee_master WHERE email = ?';
+    connection.query(checkQuery, [email], (checkErr, checkResults) => {
+      if (checkErr) throw checkErr;
+  
+      if (checkResults[0].count > 0) {
+        res.status(400).send({ error: "User with this email already registered" });
+      } else {
+        const insertQuery = 'INSERT INTO employee_master (name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        connection.query(insertQuery, [name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id], (insertErr, insertResults) => {
+          if (insertErr) throw insertErr;
+          res.status(200).send('Employee Added Successfully');
+        });
+      }
     });
   });
-  
   // GET
   router.get('/api/admin/getEmployees', (req, res) => {
     // const query = 'SELECT * FROM employee_master';
