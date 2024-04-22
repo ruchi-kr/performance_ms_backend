@@ -19,7 +19,7 @@ router.post('/api/admin/addProject',protectedRoute, (req, res) => {
 
 
 // Get project
-router.get('/api/admin/getProjects',protectedRoute, (req, res) => {
+router.get('/api/admin/getProjects', (req, res) => {
     const query = 'SELECT * FROM project_master';
     connection.query(query, (err, results) => {
       if (err) throw err;

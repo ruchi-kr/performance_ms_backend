@@ -32,6 +32,7 @@ app.use(morgan("tiny"));
   app.use(require('./Routes/rm_master_route'));
   app.use(require('./Routes/projectmaster_route'));
 
+  app.use(require('./Routes/employee_route'));
 
 app.listen( port, ()=>{
     console.log(`Listening on port ${port}`);
