@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.use(morgan("tiny"));
 
-//MySQL connection
+// MySQL connection
 // const connection = mysql.createConnection({
 //     host: 'localhost',
 //     user: 'root',
@@ -31,12 +31,6 @@ app.use(morgan("tiny"));
   app.use(require('./Routes/usermaster_route'));
   app.use(require('./Routes/rm_master_route'));
   app.use(require('./Routes/projectmaster_route'));
-
-
-
-
-
-
 
 
 app.listen( port, ()=>{

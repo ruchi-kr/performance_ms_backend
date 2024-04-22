@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require("mysql");
+const protectedRoute = require("../middleware/protectedResource");
 
 // MySQL connection
 const connection = mysql.createConnection({
@@ -20,7 +21,7 @@ connection.connect(err => {
 // API FOR PROJECT CRUD
 
 // CREATE project
-router.post('/api/admin/addProject', (req, res) => {
+router.post('/api/admin/addProject',protectedRoute, (req, res) => {
     const { project_name, schedule_start_date, schedule_end_date} = req.body;
     const query = 'INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date) VALUES (?, ?, ?)';
     connection.query(query, [project_name, schedule_start_date,schedule_end_date], (err, results) => {
@@ -31,17 +32,17 @@ router.post('/api/admin/addProject', (req, res) => {
 
 
 // Get project
-router.get('/api/admin/getProjects', (req, res) => {
+router.get('/api/admin/getProjects',protectedRoute, (req, res) => {
     const query = 'SELECT * FROM project_master';
     connection.query(query, (err, results) => {
       if (err) throw err;
-      res.json(results);
+      res.status(200).json(results);
     });
   });
   
 
 // Edit project
-router.post('/api/admin/editProject/:project_id', (req, res) => {
+router.post('/api/admin/editProject/:project_id',protectedRoute, (req, res) => {
   const projectId = req.params.project_id; 
   
   if (!projectId) {
@@ -88,14 +89,51 @@ router.post('/api/admin/editProject/:project_id', (req, res) => {
 });
 
 // DELETE project
-router.delete('/api/admin/deleteProject/:project_id', (req, res) => {
+router.delete('/api/admin/deleteProject/:project_id',protectedRoute, (req, res) => {
     const ProjectId = req.params.project_id;
     const query = 'DELETE FROM project_master WHERE project_id=?';
     connection.query(query, [ProjectId], (err, results) => {
       if (err) throw err;
-      res.send('Project deleted successfully');
+      res.status(200).send('Project deleted successfully');
     });
   });
 
+// no.of projects
+// router.get('/api/getDashData', (req, res) => {
+//   connection.query('SELECT COUNT(*) AS projectCount FROM project_master', (error, results) => {
+//     if (error) {
+//       console.error('Error fetching project count:', error);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//       return;
+//     }
+//     const projectCount = results[0].projectCount;
+//     res.status(200).json({ projectCount });
+//   });
+// });
 
+router.get('/api/getDashData', (req, res) => {
+  const queries = [
+    'SELECT COUNT(*) AS projectCount FROM project_master',
+    'SELECT COUNT(*) AS employeeCount FROM employee_master',
+    'SELECT COUNT(*) AS userCount FROM user_master',
+    'SELECT COUNT(*) AS reportingManagerCount FROM reporting_manager_master'
+  ];
+
+  connection.query(queries, (error, results) => {
+    if (error) {
+      console.error('Error fetching data:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    const [projectCountResult, employeeCountResult, userCountResult, reportingManagerCountResult] = results;
+
+    const projectCount = projectCountResult[0].projectCount;
+    const employeeCount = employeeCountResult[0].employeeCount;
+    const userCount = userCountResult[0].userCount;
+    const reportingManagerCount = reportingManagerCountResult[0].reportingManagerCount;
+
+    res.status(200).json({ projectCount, employeeCount, userCount, reportingManagerCount });
+  });
+});
   module.exports = router;

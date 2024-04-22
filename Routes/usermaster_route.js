@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require("mysql");
+const bcrypt = require('bcryptjs');
 
 // MySQL connection
 const connection = mysql.createConnection({
@@ -15,30 +16,54 @@ connection.connect(err => {
   console.log('Connected to MySQL database');
 });
 
-
-
 // API FOR USER CRUD
+
+
 // CREATE
-router.post('/api/admin/addUser', (req, res) => {
-    const { username, status, user_type, password,employee_id} = req.body;
-    const query = 'INSERT INTO user_master ( username, status, user_type, password,employee_id) VALUES (?, ?, ?, ?,?)';
-    // console.log(query);
-    connection.query(query, [username, status, user_type, password,employee_id], (err, results) => {
-      if (err) throw err;
-      res.status(200).send('User Added Successfully');
-    });
-  });
+// router.post('/api/admin/addUser', (req, res) => {
+//     const { username, status, user_type, password,employee_id} = req.body;
+//     const query = 'INSERT INTO user_master ( username, status, user_type, password,employee_id) VALUES (?, ?, ?, ?, ?)';
+//     connection.query(query, [username, status, user_type, password,employee_id], (err, results) => {
+//       if (err) throw err;
+//       res.status(200).send('User Added Successfully');
+//     });
+//   });
+
+
+  // adding user using bcrypt
+  
+
+router.post('/api/admin/addUser', async (req, res) => {
+    const { username, status, user_type, password, employee_id } = req.body;
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const query = 'INSERT INTO user_master (username, status, user_type, password, hashed_password, employee_id) VALUES (?, ?, ?, ?, ?, ?)';
+        const values = [username, status, user_type, password, hashedPassword, employee_id];
+
+        connection.query(query, values, (err, results) => {
+            if (err) throw err;
+            res.status(200).send('User Added Successfully');
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error adding user');
+    }
+});
+
+
   // GET
   router.get('/api/admin/getUsers', (req, res) => {
-    // const query = 'SELECT * FROM user_master';
     const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um RIGHT JOIN employee_master as em On em.employee_id = um.employee_id';
-    // console.log(query);
     connection.query(query, (err, results) => {
       if (err) throw err;
       console.log(results);
       res.status(200).json(results);
     });
   });
+
+
   // EDIT
   router.post('/api/admin/editUser/:user_id', (req, res) => {
     const UserId = req.params.user_id; 
@@ -85,6 +110,8 @@ router.post('/api/admin/addUser', (req, res) => {
       });
     });
   });
+
+
   // DELETE
   router.delete('/api/admin/deleteUser/:user_id', (req, res) => {
     const UserId = req.params.user_id;
