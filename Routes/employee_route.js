@@ -18,7 +18,7 @@ router.post('/api/user/addTask', (req, res) => {
 // GET
 router.get('/api/user/getTasks/:user_id', (req, res) => {
     const userId = req.params.user_id;
-    const query = 'SELECT * FROM employee WHERE user_id= ?';
+    const query = 'SELECT * FROM employee as e WHERE e.user_id= ?';
     connection.query(query, [userId], (err, results) => {
         if (err) throw err;
         res.status(200).json(results);
