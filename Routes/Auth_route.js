@@ -34,7 +34,7 @@ router.post("/api/login", (req, res) => {
 
                     const jwtToken = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '1d' });
 
-                    const userInfo = { "id": user.user_id, "role": user.role, "username": user.username, "user_type": user.user_type, "email_id": user.email_id, "mobile_no": user.mobile_no };
+                    const userInfo = { "id": user.user_id,"employee_id": user.employee_id, "role": user.role, "username": user.username, "user_type": user.user_type, "email_id": user.email_id, "mobile_no": user.mobile_no };
                     res.status(200).send({ result: { token: jwtToken, user: userInfo } });
                     console.log('Passwords do match 🤷‍♂️');
                 } else {
