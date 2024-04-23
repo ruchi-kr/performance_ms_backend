@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require("mysql");
-const connection =require("../db");
+const connection = require("../db");
 
 
 // API FOR REPORTING MANAGER CRUD
@@ -17,14 +17,36 @@ router.post('/api/admin/addManager', (req, res) => {
 
 
 // Get manager
-router.get('/api/admin/getManagers', (req, res) => {
-    const query = 'SELECT * FROM reporting_manager_master';
-    connection.query(query, (err, results) => {
-        if (err) throw err;
-        res.status(200).json(results);
-    });
-});
+// router.get('/api/admin/getManagers', (req, res) => {
+//     // const query = 'SELECT * FROM reporting_manager_master';
+//     const { page} = req.query;
+//     const offset = (page - 1) * 10;
 
+//     // const query = `SELECT * FROM reporting_manager_master LIMIT ${pageSize} OFFSET ${offset}`;
+//     const query = `SELECT * FROM reporting_manager_master LIMIT 10 OFFSET ${offset}`;
+
+//     connection.query(query, (err, results) => {
+//         if (err) throw err;
+//         res.status(200).json(results);
+//     });
+// });
+router.get('/api/admin/getManagers', (req, res) => {
+    const { page, pageSize } = req.query;
+  
+    // Validate page and pageSize
+    if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
+      return res.status(400).send('Invalid page or pageSize');
+    }
+  
+    const offset = (parseInt(page) - 1) * parseInt(pageSize);
+  
+    const query = `SELECT * FROM reporting_manager_master LIMIT ? OFFSET ?`;
+  
+    connection.query(query, [parseInt(pageSize), offset], (err, results) => {
+      if (err) throw err;
+      res.status(200).send(results);
+    });
+  });
 
 // Edit manager
 router.post('/api/admin/editManager/:reporting_manager_id', (req, res) => {
@@ -74,24 +96,44 @@ router.post('/api/admin/editManager/:reporting_manager_id', (req, res) => {
 });
 
 // DELETE manager
+// router.delete('/api/admin/deleteManager/:reporting_manager_id', (req, res) => {
+//     const ManagerId = req.params.reporting_manager_id;
+//     const query = 'DELETE FROM reporting_manager_master WHERE reporting_manager_id= ?';
+//     connection.query(query, [ManagerId], (err, results) => {
+//         if (err) throw err;
+//         res.send('Manager deleted successfully');
+//     });
+// });
+
 router.delete('/api/admin/deleteManager/:reporting_manager_id', (req, res) => {
     const ManagerId = req.params.reporting_manager_id;
-    const query = 'DELETE FROM reporting_manager_master WHERE reporting_manager_id=?';
-    connection.query(query, [ManagerId], (err, results) => {
-        if (err) throw err;
-        res.send('Manager deleted successfully');
+
+    // Check if the manager is assigned to any employee
+    const checkQuery = 'SELECT COUNT(*) as count FROM employee_master WHERE reporting_manager_id = ?';
+    connection.query(checkQuery, [ManagerId], (checkErr, checkResults) => {
+        if (checkErr) throw checkErr;
+
+        if (checkResults[0].count > 0) {
+            res.status(400).send({ error: "Manager cannot be deleted as it is assigned to an employee" });
+        } else {
+            const deleteQuery = 'DELETE FROM reporting_manager_master WHERE reporting_manager_id = ?';
+            connection.query(deleteQuery, [ManagerId], (deleteErr, deleteResults) => {
+                if (deleteErr) throw deleteErr;
+                res.send('Manager deleted successfully');
+            });
+        }
     });
 });
 
 // get list of all manager
 router.get('/api/admin/getManagersList', (req, res) => {
-  
-  const query = 'SELECT * FROM reporting_manager_master';
 
-  connection.query(query, (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
-  })
+    const query = 'SELECT * FROM reporting_manager_master';
+
+    connection.query(query, (err, results) => {
+        if (err) throw err;
+        res.status(200).json(results);
+    })
 })
 
 

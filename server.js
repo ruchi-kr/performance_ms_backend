@@ -11,18 +11,7 @@ app.use(express.json());
 
 // app.use(morgan("tiny"));
 const teamsRoutes = require("./Routes/teamsRoutes");
-// MySQL connection
-// const connection = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '',
-//     database: 'performancems'
-//   });
 
-//   connection.connect(err => {
-//     if (err) throw err;
-//     console.log('Connected to MySQL database');
-//   });
 
 app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Employeemaster_route"));
