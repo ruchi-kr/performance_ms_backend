@@ -37,7 +37,7 @@ const connection =require("../db");
   // GET
   router.get('/api/admin/getEmployees', (req, res) => {
     // const query = 'SELECT * FROM employee_master';
-    const query ='SELECT em.*,rmm.name as reporting_name FROM `employee_master` as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id';
+    const query ='SELECT em.*, rmm.name as reporting_name, us.user_id FROM employee_master as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id JOIN user_master as us ON em.employee_id = us.employee_id';
     connection.query(query, (err, results) => {
       if (err) throw err;
       res.status(200).json(results);
