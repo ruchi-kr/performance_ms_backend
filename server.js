@@ -28,7 +28,7 @@ const remarkRoutes = require("./Routes/remarkRoutes")
 app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
-app.use(require("./Routes/rm_master_route"));
+app.use(require("./Routes/designation_master_route"));
 app.use(require("./Routes/projectmaster_route"));
 app.use(require("./Routes/remarkRoutes"));
 //Teams routes

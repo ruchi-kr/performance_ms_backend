@@ -17,24 +17,45 @@ router.post('/api/admin/addProject',protectedRoute, (req, res) => {
     });
   });
 
+// // Get project
+// router.get('/api/admin/getProjects', (req, res) => {
+
+  
+//     const query = 'SELECT * FROM project_master';
+//     connection.query(query,(err, results) => {
+//       if (err) throw err;
+//       res.status(200).json(results);
+//     });
+//   });
+
+
 
 // Get project
-router.get('/api/admin/getProjects', (req, res) => {
+router.get('/api/admin/getallProject', (req, res) => {
 
   const { page, pageSize } = req.query;
-  
-    // Validate page and pageSize
-    if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-      return res.status(400).send('Invalid page or pageSize');
-    }
-  
-    const offset = (parseInt(page) - 1) * parseInt(pageSize);
-    const query = 'SELECT * FROM project_master LIMIT ? OFFSET ?';
-    connection.query(query,[parseInt(pageSize), offset], (err, results) => {
-      if (err) throw err;
-      res.status(200).json(results);
-    });
+
+  // Validate page and pageSize
+  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
+    return res.status(400).send('Invalid page or pageSize');
+  }
+
+  const offset = (parseInt(page) - 1) * parseInt(pageSize);
+  const query = 'SELECT * FROM project_master LIMIT ? OFFSET ?';
+  connection.query(query, [parseInt(pageSize), offset], (err, results) => {
+    if (err) throw err;
+    res.status(200).json(results);
   });
+});
+
+router.get('/api/admin/getProjects', (req, res) => {
+  const query = 'SELECT * FROM project_master';
+  connection.query(query, (err, results) => {
+    if (err) throw err;
+    res.status(200).json(results);
+  });
+});
+
   
  
 // Edit project

@@ -16,7 +16,7 @@ const connection =require("../db");
 //     });
 //   });
   router.post('/api/admin/addEmployee', (req, res) => {
-    const { name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id } = req.body;
+    const { name,manager_id, designation_id, doj, experience, skills, mobile_no, email } = req.body;
   
     // Check if email already exists
     const checkQuery = 'SELECT COUNT(*) as count FROM employee_master WHERE email = ?';
@@ -26,8 +26,8 @@ const connection =require("../db");
       if (checkResults[0].count > 0) {
         res.status(400).send({ error: "User with this email already registered" });
       } else {
-        const insertQuery = 'INSERT INTO employee_master (name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        connection.query(insertQuery, [name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id], (insertErr, insertResults) => {
+        const insertQuery = 'INSERT INTO employee_master (name,manager_id, designation_id, doj, experience, skills, mobile_no, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        connection.query(insertQuery, [name,manager_id, designation_id, doj, experience, skills, mobile_no, email], (insertErr, insertResults) => {
           if (insertErr) throw insertErr;
           res.status(200).send('Employee Added Successfully');
         });
@@ -37,13 +37,24 @@ const connection =require("../db");
   // GET
   router.get('/api/admin/getEmployees', (req, res) => {
     // const query = 'SELECT * FROM employee_master';
-    const query ='SELECT em.*, rmm.name as reporting_name, us.user_id FROM employee_master as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id JOIN user_master as us ON em.employee_id = us.employee_id';
+    // const query ='SELECT em.*,rmm.name as reporting_name FROM `employee_master` as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
+   const query='SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id';
     connection.query(query, (err, results) => {
       if (err) throw err;
       res.status(200).json(results);
     });
   });
 
+  router.get('/api/admin/getEmployeeslist', (req, res) => {
+
+    const query = 'SELECT * FROM employee_master';
+    connection.query(query, (err, results) => {
+      if (err) throw err;
+      res.status(200).json(results);
+    });
+
+
+  })
 
   // EDIT
   router.post('/api/admin/editEmployee/:employee_id', (req, res) => {
@@ -54,7 +65,7 @@ const connection =require("../db");
     }
   
     const fetchQuery = 'SELECT * FROM employee_master WHERE employee_id=?';
-    const updateQuery = 'UPDATE employee_master SET name=?, designation=?, doj=?, experience=?,skills=?,mobile_no=?,email=?,reporting_manager_id=? WHERE employee_id=?';
+    const updateQuery = 'UPDATE employee_master SET name=?, manager_id=?, designation_id=?, doj=?, experience=?,skills=?,mobile_no=?,email=? WHERE employee_id=?';
   
     // Fetch project by ID
     connection.query(fetchQuery, [employeeId], (fetchErr, fetchResults) => {
@@ -67,10 +78,10 @@ const connection =require("../db");
       }
   
       const existingProject = fetchResults[0];
-      const { name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id} = req.body;
+      const { name,manager_id, designation_id, doj, experience,skills,mobile_no,email} = req.body;
   
       // Update project data
-      connection.query(updateQuery, [name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id, employeeId], (updateErr, updateResults) => {
+      connection.query(updateQuery, [name, manager_id, designation_id,doj, experience,skills,mobile_no,email, employeeId], (updateErr, updateResults) => {
         if (updateErr) {
           return res.status(500).send('Error updating employee');
         }
