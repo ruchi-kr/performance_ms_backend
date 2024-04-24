@@ -136,4 +136,5 @@ const DeleteTeam = async (req, res) => {
   });
 };
 
+
 module.exports = { GetAllTeams, GetTeam, AddTeam, EditTeam, DeleteTeam };
