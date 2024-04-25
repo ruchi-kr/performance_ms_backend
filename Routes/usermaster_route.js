@@ -43,9 +43,18 @@ router.post('/api/admin/addUser', async (req, res) => {
 
 
   // GET
+  // with pagination
   router.get('/api/admin/getUsers', (req, res) => {
-    const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id';
-    connection.query(query, (err, results) => {
+    const { page, pageSize } = req.query;
+
+  // Validate page and pageSize
+  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
+    return res.status(400).send('Invalid page or pageSize');
+  }
+
+  const offset = (parseInt(page) - 1) * parseInt(pageSize);
+    const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id LIMIT ? OFFSET ?';
+    connection.query(query,[parseInt(pageSize), offset], (err, results) => {
       if (err) throw err;
       console.log(results);
       res.status(200).json(results);

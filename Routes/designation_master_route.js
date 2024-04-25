@@ -18,23 +18,22 @@ router.post('/api/admin/addDesignation', (req, res) => {
 
 // Get designation
 router.get('/api/admin/getAllDesignation', (req, res) => {
-    const { page, pageSize } = req.query;
-  
+    const { page, pageSize,name="" } = req.query;
+
     // Validate page and pageSize
     if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-      return res.status(400).send('Invalid page or pageSize');
+        return res.status(400).send('Invalid page or pageSize');
     }
-  
-    const offset = (parseInt(page) - 1) * parseInt(pageSize);
-    // const query ='SELECT rmm.*,em.name as employee_name FROM `reporting_manager_master` as rmm LEFT JOIN employee_master as em On rmm.employee_id = em.employee_id LIMIT ? OFFSET ?';    // JOIN user_master as us ON em.employee_id = us.employee_id
 
-    const query = `SELECT * FROM designation_master LIMIT ? OFFSET ?`;
-  
+    const offset = (parseInt(page) - 1) * parseInt(pageSize);
+
+    const query = `SELECT * FROM designation_master WHERE designation_name LIKE '%${name}%' LIMIT ? OFFSET ?`;
+
     connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-      if (err) throw err;
-      res.status(200).send(results);
+        if (err) throw err;
+        res.status(200).send(results);
     });
-  });
+});
 
 // Edit designation
 router.post('/api/admin/editDesignation/:designation_id', (req, res) => {
@@ -61,7 +60,7 @@ router.post('/api/admin/editDesignation/:designation_id', (req, res) => {
         const { designation_name } = req.body;
 
         // Update designation data
-        connection.query(updateQuery, [ designation_name, DesignationId], (updateErr, updateResults) => {
+        connection.query(updateQuery, [designation_name, DesignationId], (updateErr, updateResults) => {
             if (updateErr) {
                 return res.status(500).send('Error updating designation');
             }

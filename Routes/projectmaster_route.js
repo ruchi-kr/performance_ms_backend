@@ -31,9 +31,10 @@ router.post('/api/admin/addProject',protectedRoute, (req, res) => {
 
 
 // Get project
+// with pagination
 router.get('/api/admin/getallProject', (req, res) => {
 
-  const { page, pageSize } = req.query;
+  const { page, pageSize,name="" } = req.query;
 
   // Validate page and pageSize
   if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
@@ -41,13 +42,13 @@ router.get('/api/admin/getallProject', (req, res) => {
   }
 
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
-  const query = 'SELECT * FROM project_master LIMIT ? OFFSET ?';
+  const query = `SELECT * FROM project_master WHERE project_name LIKE '%${name}%' LIMIT ? OFFSET ?`;
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
     if (err) throw err;
     res.status(200).json(results);
   });
 });
-
+// without pagination
 router.get('/api/admin/getProjects', (req, res) => {
   const query = 'SELECT * FROM project_master';
   connection.query(query, (err, results) => {
