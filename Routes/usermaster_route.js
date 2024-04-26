@@ -45,7 +45,7 @@ router.post('/api/admin/addUser', async (req, res) => {
   // GET
   // with pagination
   router.get('/api/admin/getUsers', (req, res) => {
-    const { page, pageSize } = req.query;
+    const { page, pageSize, name="",email="",role="" } = req.query;
 
   // Validate page and pageSize
   if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
@@ -53,7 +53,7 @@ router.post('/api/admin/addUser', async (req, res) => {
   }
 
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
-    const query ='SELECT um.*,em.name as employee_name FROM `user_master` as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id LIMIT ? OFFSET ?';
+    const query =`SELECT um.*,em.name as employee_name FROM user_master as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id WHERE um.username LIKE '%${name}%' OR um.email_id LIKE '%${email}%'  OR um.role LIKE '%${role}%' LIMIT ? OFFSET ?`;
     connection.query(query,[parseInt(pageSize), offset], (err, results) => {
       if (err) throw err;
       console.log(results);
