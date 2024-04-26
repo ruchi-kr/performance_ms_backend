@@ -44,7 +44,7 @@ router.post("/api/user/addTask", (req, res) => {
 // GET
 router.get("/api/user/getTasks/:employee_id", (req, res) => {
   const employee_id = req.params.employee_id;
-  const query = 'SELECT * FROM employee WHERE user_id= ?';
+  const query = 'SELECT * FROM employee WHERE user_id= ? AND DATE(created_at)=CURRENT_DATE()';
   // const query =
   //   "SELECT employee.* , em.* FROM employee JOIN user_master AS um ON um.user_id = employee.user_id JOIN employee_master AS em ON em.employee_id = um.employee_id WHERE employee.employee_id= ?";
   connection.query(query, [employee_id], (err, results) => {

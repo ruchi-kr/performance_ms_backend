@@ -1,17 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
-// // MySQL connection
-// const connection = mysql.createConnection({
-//   host: "localhost",
-//   user: "root",
-//   password: "",
-//   database: "performancems",
-// });
 
-// connection.connect((err) => {
-//   if (err) throw err;
-//   console.log("Connected to MySQL database in teams");
-// });
 const GetReportingManagerForEmployee = async (req, res) => {
   const { reporting_manager_id } = req.params;
   console.log("reporting manager", reporting_manager_id);
@@ -35,4 +24,52 @@ const GetReportingManagerForEmployee = async (req, res) => {
   }
 };
 
-module.exports = { GetReportingManagerForEmployee };
+const GetDailyReportToManagerPerEmployee = async (req, res) => {
+  const { manager_id, employee_id, project_id } = req.params;
+  console.log(
+    "manager_id,employee_id,project_id",
+    manager_id,
+    employee_id,
+    project_id
+  );
+  try {
+    let query = "";
+    if (employee_id === "null" || employee_id === null) {
+      console.log("running all employees query with particular project");
+      query =
+        "SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.project_id=? AND DATE(created_at)=CURRENT_DATE()";
+      connection.query(query, [manager_id, project_id], (err, results) => {
+        if (err) throw err;
+        temp = JSON.parse(JSON.stringify(results));
+        // console.log("data", temp);
+
+        return res.status(StatusCodes.OK).json({ data: temp });
+      });
+    } else if (project_id === "null" || project_id === null) {
+      console.log("running particular employees query");
+      query =
+        "SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND DATE(created_at)=CURRENT_DATE()";
+      connection.query(query, [manager_id, employee_id], (err, results) => {
+        if (err) throw err;
+        temp = JSON.parse(JSON.stringify(results));
+        // console.log("data", temp);
+
+        return res.status(StatusCodes.OK).json({ data: temp });
+      });
+    }
+    console.log("query", query);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "Something went wrong!" });
+  }
+  // res
+  //   .status(StatusCodes.OK)
+  //   .json({ msg: "daily emplopyee report per employee" });
+};
+
+module.exports = {
+  GetReportingManagerForEmployee,
+  GetDailyReportToManagerPerEmployee,
+};
