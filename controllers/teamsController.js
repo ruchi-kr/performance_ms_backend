@@ -1,17 +1,8 @@
 const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
-// // MySQL connection
-// const connection = mysql.createConnection({
-//   host: "localhost",
-//   user: "root",
-//   password: "",
-//   database: "performancems",
-// });
 
-// connection.connect((err) => {
-//   if (err) throw err;
-//   console.log("Connected to MySQL database in teams");
-// });
+
+
 const GetAllTeams = async (req, res) => {
   const { reporting_manager_id } = req.params;
   console.log("reporting manager", reporting_manager_id);
