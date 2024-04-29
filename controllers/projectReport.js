@@ -14,25 +14,25 @@ const ViewProjectReport = (req, res) => {
       temp = JSON.parse(JSON.stringify(results));
       for (index in temp) {
         console.log(temp[index].employee_id);
-        const query = "SELECT * from employee  ORDER BY created_at ASC";
-        try {
-          connection.query(
-            query,
-            temp.reporting_manager_id,
-            temp.project_id,
-            (err, results) => {
-              console.log(
-                "\n\n\n\n================actual start date========================",
-                results
-              );
-            }
-          );
-        } catch (error) {
-          console.log("error");
-        }
+
         const teamArray = JSON.parse(temp[index].employee_id);
         temp[index].employee_id = teamArray;
         console.log("teamArrya", typeof teamArray);
+        // try {
+        //   connection.query(
+        //     query,
+        //     temp.reporting_manager_id,
+        //     temp.project_id,
+        //     (err, results) => {
+        //       console.log(
+        //         "\n\n\n\n================actual start date========================",
+        //         results
+        //       );
+        //     }
+        //   );
+        // } catch (error) {
+        //   console.log("error");
+        // }
       }
       const resultsArray = [];
       const queryPromises = temp.map((obj) => {
@@ -102,4 +102,35 @@ const ViewProjectReport = (req, res) => {
   }
 };
 
-module.exports = { ViewProjectReport };
+const ProjectActualStartDate = (req, res) => {
+  const { reporting_manager_id } = req.params;
+  console.log("reporting manager id", reporting_manager_id);
+  try {
+    const query = `SELECT e.project_id,
+      MIN(e.created_at) AS actual_start_date
+  FROM
+      employee e
+  GROUP BY
+      e.project_id`;
+    connection.query(
+      query,
+      reporting_manager_id,
+
+      (err, results) => {
+        console.log(
+          "\n\n\n\n================actual start date========================",
+          results
+        );
+
+        res.status(StatusCodes.OK).json(results);
+      }
+    );
+  } catch (error) {
+    console.log("error");
+  }
+};
+
+// const ProjectActualStartDate = (req,res)=>{
+//     res.send("OK")
+// }
+module.exports = { ViewProjectReport, ProjectActualStartDate };
