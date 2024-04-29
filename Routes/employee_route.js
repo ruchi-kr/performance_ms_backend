@@ -113,7 +113,7 @@ router.get("/api/user/getReports/:employee_id", (req, res) => {
   }
 
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
-  
+
 
   const query = `SELECT e.project_id, 
 SUM(e.allocated_time) AS total_allocated_hours, 
@@ -148,7 +148,7 @@ LIMIT ? OFFSET ?`;
 
   connection.query(query, [employee_id, parseInt(pageSize), offset], (err, results) => {
     if (err) throw err;
-   
+
     res.status(200).json(results);
   });
 });
