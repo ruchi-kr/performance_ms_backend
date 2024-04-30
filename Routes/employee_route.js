@@ -246,7 +246,8 @@ router.get("/api/user/getReports/:employee_id", (req, res) => {
           ']'
         )
         FROM employee t
-        WHERE t.project_id = e.project_id`;
+        WHERE t.project_id = e.project_id
+        AND t.user_id = e.user_id`;
 
   const params = [employee_id];
 
