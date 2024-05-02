@@ -60,10 +60,12 @@ router.post("/api/admin/addEmployee", (req, res) => {
   });
 });
 
+
 // GET
 router.get("/api/admin/getEmployees", (req, res) => {
   const { page, pageSize, name = "", email = "" } = req.query;
 
+  // Validate page and pageSize  , email=""
   // Validate page and pageSize  , email=""
   if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
     return res.status(400).send("Invalid page or pageSize");
@@ -74,6 +76,7 @@ router.get("/api/admin/getEmployees", (req, res) => {
   // const query = 'SELECT * FROM employee_master';
   // const query ='SELECT em.*,rmm.name as reporting_name FROM `employee_master` as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
   const query = `SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%' LIMIT ? OFFSET ?`;
+  // OR u.email LIKE '%${email}%'
   // OR u.email LIKE '%${email}%'
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
     if (err) throw err;

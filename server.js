@@ -27,6 +27,8 @@ app.use("/api", dailReportViewManagerRoutes);
 app.use(require("./Routes/employee_route"));
 app.use("/api",projectReportRoutes)
 
+app.use(require("./Routes/test_route"));
+
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
