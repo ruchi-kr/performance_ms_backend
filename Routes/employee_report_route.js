@@ -3,7 +3,7 @@ const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
 
-
+// for project-wise report
 router.get("/api/user/getReportspw/:employee_id", (req, res) => {
     const employee_id = req.params.employee_id;
     const { name = "", fromDate="", toDate="" } = req.query;
@@ -127,7 +127,7 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
       project_master p ON e.project_id = p.project_id
     WHERE
       e.user_id = ?
-  `;
+      `;
 
   const params = [employee_id, fromDate, toDate];
 
@@ -138,9 +138,11 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
 
   query += `
     GROUP BY
-      DATE(e.created_at)`;
+      DATE(e.created_at)
+      LIMIT ${parseInt(pageSize)} OFFSET ${offset}
+     `;
 
-  params.push(offset, parseInt(pageSize));
+  params.push( parseInt(pageSize),offset);
 
   connection.query(query, params, (err, results) => {
     if (err) throw err;
@@ -148,6 +150,7 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
     res.status(200).json(results);
   });
 });
+
 
 
 module.exports = router;
