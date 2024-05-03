@@ -6,14 +6,14 @@ const connection = require("../db");
 // for project-wise report
 router.get("/api/user/getReportspw/:employee_id", (req, res) => {
     const employee_id = req.params.employee_id;
-    const { name = "", fromDate="", toDate="" } = req.query;
+    const {page, pageSize, name = "", fromDate="", toDate="" } = req.query;
    console.clear();
-    // // Validate page and pageSize  page, pageSize, 
-    // if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-    //   return res.status(400).send("Invalid page or pageSize");
-    // }
+    // Validate page and pageSize  page, pageSize, 
+    if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
+      return res.status(400).send("Invalid page or pageSize");
+    }
   
-    // const offset = (parseInt(page) - 1) * parseInt(pageSize);
+    const offset = (parseInt(page) - 1) * parseInt(pageSize);
   
     let query = `
       SELECT e.project_id,
@@ -40,11 +40,10 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
           WHERE t.project_id = e.project_id
           AND t.user_id = e.user_id`;
   
-    const params = [employee_id];
-  
+   
     if (fromDate && toDate) {
       query += ` AND DATE(t.created_at) BETWEEN ? AND ? `;
-      params.push(fromDate, toDate);
+   
     }
   
     query += `) AS tasks
@@ -54,19 +53,25 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
               AND p.project_name LIKE '%${name}%'
               GROUP BY e.project_id 
               `;
-  
+              if (!fromDate && !toDate) {
+                query += ` LIMIT ? OFFSET ?`;
+           
+              }
     console.log("query1",query)
+    const queryParams = fromDate && toDate ? [fromDate, toDate, employee_id] : [employee_id];
+    if (!fromDate && !toDate) {
+        queryParams.push(parseInt(pageSize), offset);
+    }
     connection.query(
       query,
-      [...params],
+      queryParams,
       (err, results) => {
         if (err) throw err;
         console.log("results of getreports",results)
         res.status(200).json(results);
-        // LIMIT ? OFFSET ?  // [...params, parseInt(pageSize), offset],
       }
     );
-    console.log("query2",query)
+    
   });
   
 

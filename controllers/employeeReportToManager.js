@@ -45,7 +45,7 @@ LEFT JOIN
     employee_master AS em ON em.employee_id = e.employee_id
 WHERE 
     e.manager_id = ?
-    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY)
+    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY) 
     AND
     (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
 GROUP BY 
