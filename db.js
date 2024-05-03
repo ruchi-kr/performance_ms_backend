@@ -28,7 +28,7 @@ connection.connect((err) => {
   // '+05:30'
   connection.query("SET GLOBAL time_zone = '+00:00';", (err, results) => {
     if (err) throw err;
-    console.log("Time zone set to Indian Standard Time (IST)");
+    console.log("Time zone set GLOBAL time_zone = '+00:00'");
   });
 });
 
