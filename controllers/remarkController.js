@@ -28,7 +28,7 @@ const AddRemark = async (req, res) => {
 };
 const EditRemark = async (req, res) => {
   const { task_id } = req.params;
-  const { manager_remarks=null } = req.body;
+  const { manager_remarks=null   } = req.body;
   console.log("task_id remarks", task_id, manager_remarks);
   const query = "UPDATE employee SET manager_remarks = ? WHERE id = ?";
   connection.query(query, [manager_remarks, task_id], (err, results) => {

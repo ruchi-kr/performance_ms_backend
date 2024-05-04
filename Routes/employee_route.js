@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
+const dayjs = require("dayjs");
 
+const utc = require("dayjs/plugin/utc");
+const moment = require("moment");
 // API FOR CRUD EMPLOYEE
 
 // CREATE
@@ -20,8 +23,12 @@ router.post("/api/user/addTask", (req, res) => {
     status,
     remarks,
   } = req.body;
+  let actual_end_date = null;
+  if (status === "completed") {
+    actual_end_date = moment.utc().format();
+  }
   const query =
-    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks ) VALUES (?,?,?, ?, ?,?,?,?,?,?)";
+    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date ) VALUES (?,?,?, ?, ?,?,?,?,?,?,?)";
   connection.query(
     query,
     [
@@ -35,6 +42,7 @@ router.post("/api/user/addTask", (req, res) => {
       task_percent,
       status,
       remarks,
+      actual_end_date,
     ],
     (err, results) => {
       if (err) throw err;
@@ -73,8 +81,13 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
     manager_id,
     end_time,
   } = req.body;
+  let actual_end_date = null;
+  if (status === "completed") {
+    actual_end_date = moment.utc().format();
+  }
+
   const query =
-    "UPDATE employee SET project_id = ?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ? WHERE id = ?";
+    "UPDATE employee SET project_id = ?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=? WHERE id = ?";
   connection.query(
     query,
     [
@@ -88,6 +101,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
       task_percent,
       status,
       remarks,
+      actual_end_date,
       taskId,
     ],
     (err, results) => {
