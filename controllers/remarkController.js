@@ -10,28 +10,28 @@ const AddRemark = async (req, res) => {
 
   const query =
     "INSERT INTO team ( project_id, employee_id,reporting_manager_id) VALUES (?, ?, ?)";
-    connection.query(
-      query,
-      [project_id, JSON.stringify(employee_id), reporting_manager_id],
-      (err, results) => {
-        if (err) {
-          console.log(err);
-          return res
-            .status(StatusCodes.NOT_MODIFIED)
-            .json({ msg: "data falied added" });
-        } else {
-          res.status(StatusCodes.OK).json({ msg: "data added" });
-        }
+  connection.query(
+    query,
+    [project_id, JSON.stringify(employee_id), reporting_manager_id],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        return res
+          .status(StatusCodes.NOT_MODIFIED)
+          .json({ msg: "data falied added" });
+      } else {
+        res.status(StatusCodes.OK).json({ msg: "data added" });
       }
-    );
+    }
+  );
   console.log(project_id, employee_id, reporting_manager_id);
 };
 const EditRemark = async (req, res) => {
   const { task_id } = req.params;
-  const { remarks } = req.body;
-  console.log("task_id remarks", task_id, remarks);
-  const query = "UPDATE employee SET remarks = ? WHERE id = ?";
-  connection.query(query, [remarks, task_id], (err, results) => {
+  const { manager_remarks=null } = req.body;
+  console.log("task_id remarks", task_id, manager_remarks);
+  const query = "UPDATE employee SET manager_remarks = ? WHERE id = ?";
+  connection.query(query, [manager_remarks, task_id], (err, results) => {
     if (err) {
       return res
         .status(StatusCodes.BAD_REQUEST)

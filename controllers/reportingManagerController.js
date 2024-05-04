@@ -39,22 +39,18 @@ const GetDailyReportToManagerPerEmployee = async (req, res) => {
     let query = "";
     if (employee_id === "null" || employee_id === null) {
       console.log("running all employees query with particular project");
-      query = `SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.project_id=?  AND DATE(created_at)=CURRENT_DATE()`;
-      connection.query(
-        query,
-        [manager_id, project_id],
-        (err, results) => {
-          if (err) throw err;
-          temp = JSON.parse(JSON.stringify(results));
-          // console.log("data", temp);
+      query = `SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.project_id=?  AND (DATE(created_at)=CURRENT_DATE() OR e.status='inprocess' OR e.status='notstarted' )`;
+      connection.query(query, [manager_id, project_id], (err, results) => {
+        if (err) throw err;
+        temp = JSON.parse(JSON.stringify(results));
+        // console.log("data", temp);
 
-          return res.status(StatusCodes.OK).json({ data: temp });
-        }
-      );
+        return res.status(StatusCodes.OK).json({ data: temp });
+      });
     } else if (project_id === "null" || project_id === null) {
       console.log("running particular employees query");
       query =
-        "SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND DATE(created_at)=CURRENT_DATE()";
+        "SELECT e.*, pm.project_name,em.* FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND (DATE(created_at)=CURRENT_DATE() OR e.status='inprocess' OR e.status='notstarted' )";
       connection.query(query, [manager_id, employee_id], (err, results) => {
         if (err) throw err;
         temp = JSON.parse(JSON.stringify(results));
