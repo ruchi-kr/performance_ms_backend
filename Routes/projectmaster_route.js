@@ -185,4 +185,18 @@ router.get("/api/getDashData", (req, res) => {
       .json({ projectCount, employeeCount, userCount, reportingManagerCount });
   });
 });
+
+// to export to excel and pdf file
+router.get("/api/admin/getexcelpdfprojects", (req, res) => { 
+  try {
+    const query = 'SELECT * FROM project_master';
+    connection.query(query, (err, results) => {
+      if (err) throw err;
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
