@@ -15,12 +15,13 @@ router.post("/api/user/addTask", (req, res) => {
     task,
     allocated_time,
     actual_time,
+    task_percent,
     end_time,
     status,
     remarks,
   } = req.body;
   const query =
-    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,status,remarks ) VALUES (?,?,?, ?, ?,?,?,?,?)";
+    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks ) VALUES (?,?,?, ?, ?,?,?,?,?,?)";
   connection.query(
     query,
     [
@@ -31,6 +32,7 @@ router.post("/api/user/addTask", (req, res) => {
       task,
       allocated_time,
       actual_time,
+      task_percent,
       status,
       remarks,
     ],
@@ -63,6 +65,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
     task,
     allocated_time,
     actual_time,
+    task_percent,
     status,
     remarks,
     project_id,
@@ -71,7 +74,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
     end_time,
   } = req.body;
   const query =
-    "UPDATE employee SET project_id = ?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?, status = ?, remarks = ? WHERE id = ?";
+    "UPDATE employee SET project_id = ?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ? WHERE id = ?";
   connection.query(
     query,
     [
@@ -82,6 +85,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
       manager_id,
       allocated_time,
       actual_time,
+      task_percent,
       status,
       remarks,
       taskId,
