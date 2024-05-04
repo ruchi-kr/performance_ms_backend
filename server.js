@@ -16,6 +16,8 @@ const dailReportViewManagerRoutes = require("./Routes/dailyReportToManager");
 const projectReportRoutes = require("./Routes/projectReportRoutes");
 const employeeRoportToManagerRoutes = require("./Routes/employeeReportToManagerRoutes");
 const projectDetailedReportToManagerRoutes = require("./Routes/projectDetailedReportToManagerRoutes");
+const getCurrentTimeStampRoutes = require("./Routes/currentTimeRouter");
+
 app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
@@ -30,6 +32,7 @@ app.use(require("./Routes/employee_route"));
 app.use("/api", projectReportRoutes);
 app.use("/api", employeeRoportToManagerRoutes);
 app.use("/api", projectDetailedReportToManagerRoutes);
+app.use("/api", getCurrentTimeStampRoutes);
 
 app.use(require("./Routes/employee_report_route"));
 
