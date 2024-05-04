@@ -10,20 +10,20 @@ const AddRemark = async (req, res) => {
 
   const query =
     "INSERT INTO team ( project_id, employee_id,reporting_manager_id) VALUES (?, ?, ?)";
-  connection.query(
-    query,
-    [project_id, JSON.stringify(employee_id), reporting_manager_id],
-    (err, results) => {
-      if (err) {
-        console.log(err);
-        return res
-          .status(StatusCodes.NOT_MODIFIED)
-          .json({ msg: "data falied added" });
-      } else {
-        res.status(StatusCodes.OK).json({ msg: "data added" });
+    connection.query(
+      query,
+      [project_id, JSON.stringify(employee_id), reporting_manager_id],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(StatusCodes.NOT_MODIFIED)
+            .json({ msg: "data falied added" });
+        } else {
+          res.status(StatusCodes.OK).json({ msg: "data added" });
+        }
       }
-    }
-  );
+    );
   console.log(project_id, employee_id, reporting_manager_id);
 };
 const EditRemark = async (req, res) => {

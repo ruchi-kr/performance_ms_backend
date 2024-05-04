@@ -13,8 +13,9 @@ app.use(morgan("tiny"));
 const teamsRoutes = require("./Routes/teamsRoutes");
 const remarkRoutes = require("./Routes/remarkRoutes");
 const dailReportViewManagerRoutes = require("./Routes/dailyReportToManager");
-const projectReportRoutes = require("./Routes/projectReportRoutes")
-const employeeRoportToManagerRoutes = require("./Routes/employeeReportToManagerRoutes")
+const projectReportRoutes = require("./Routes/projectReportRoutes");
+const employeeRoportToManagerRoutes = require("./Routes/employeeReportToManagerRoutes");
+const projectDetailedReportToManagerRoutes = require("./Routes/projectDetailedReportToManagerRoutes");
 app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
@@ -26,8 +27,9 @@ app.use("/api/user", teamsRoutes);
 app.use("/api", remarkRoutes);
 app.use("/api", dailReportViewManagerRoutes);
 app.use(require("./Routes/employee_route"));
-app.use("/api",projectReportRoutes)
-app.use("/api",employeeRoportToManagerRoutes)
+app.use("/api", projectReportRoutes);
+app.use("/api", employeeRoportToManagerRoutes);
+app.use("/api", projectDetailedReportToManagerRoutes);
 
 app.use(require("./Routes/employee_report_route"));
 
