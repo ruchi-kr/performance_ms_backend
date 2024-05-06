@@ -74,6 +74,44 @@ GROUP BY
     }
   });
 });
+// Get Module for project
+router.get("/api/admin/getAllModule/:project_id", (req, res) => {
+  const { project_id } = req.params;
+  console.log("project_id", project_id);
+  const query = `
+  SELECT 
+    mm.project_id,
+    pm.project_name,
+    CONCAT('[', COALESCE(
+        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '"}') SEPARATOR ','), 
+        '[]'
+    ), ']') AS module_name
+FROM 
+    module_master as mm
+LEFT JOIN project_master as pm 
+ON pm.project_id = mm.project_id
+WHERE mm.project_id = ?
+GROUP BY 
+    project_id;
+`;
+
+  connection.query(query, [project_id], (err, results) => {
+    if (err) {
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
+    } else {
+      const temp = results.map((item) => {
+        return {
+          ...item,
+          module_name: JSON.parse(item.module_name),
+        };
+      });
+      res.status(200).send(temp);
+    }
+  });
+});
 
 // Edit module
 router.post("/api/admin/editModule/:project_id", (req, res) => {

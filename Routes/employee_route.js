@@ -15,6 +15,7 @@ router.post("/api/user/addTask", (req, res) => {
     user_id,
     employee_id,
     manager_id,
+    module_id,
     task,
     allocated_time,
     actual_time,
@@ -29,11 +30,12 @@ router.post("/api/user/addTask", (req, res) => {
     actual_end_date = moment.utc().format();
   }
   const query =
-    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc ) VALUES (?,?,?, ?, ?,?,?,?,?,?,?,?)";
+    "INSERT INTO employee ( project_id,module_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc ) VALUES (?,?,?,?, ?, ?,?,?,?,?,?,?,?)";
   connection.query(
     query,
     [
       project_id,
+      module_id,
       employee_id,
       manager_id,
       user_id,
@@ -49,11 +51,12 @@ router.post("/api/user/addTask", (req, res) => {
     (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).send("Task Added Successfully");
       }
-     
     }
   );
 });
@@ -68,11 +71,12 @@ router.get("/api/user/getTasks/:employee_id", (req, res) => {
   connection.query(query, [employee_id], (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       res.status(200).json(results);
     }
-   
   });
 });
 
@@ -83,6 +87,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
   const {
     user_id,
     task,
+    module_id,
     allocated_time,
     actual_time,
     task_percent,
@@ -99,11 +104,12 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
   }
 
   const query =
-    "UPDATE employee SET project_id = ?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=? WHERE id = ?";
+    "UPDATE employee SET project_id = ?,module_id=?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=? WHERE id = ?";
   connection.query(
     query,
     [
       project_id,
+      module_id,
       user_id,
       task,
       employee_id,
@@ -119,11 +125,12 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
     (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).send("Task Updated Successfully");
       }
-     
     }
   );
 });
@@ -135,11 +142,12 @@ router.delete("/api/user/deleteTask/:taskId", (req, res) => {
   connection.query(query, [taskId], (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       res.status(200).send("Task Deleted Successfully");
     }
-   
   });
 });
 
