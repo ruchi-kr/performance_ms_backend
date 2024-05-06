@@ -30,8 +30,12 @@ router.get('/api/admin/getAllDesignation', (req, res) => {
     const query = `SELECT * FROM designation_master WHERE designation_name LIKE '%${name}%' LIMIT ? OFFSET ?`;
 
     connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-        if (err) throw err;
-        res.status(200).send(results);
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'An error occurred while processing your request.' });
+          } else {
+            res.status(200).send(results);
+          }
     });
 });
 
@@ -111,8 +115,13 @@ router.get('/api/admin/getDesignationList', (req, res) => {
     // const query ='SELECT rmm.*,em.name as manager_name FROM `reporting_manager_master` as rmm LEFT JOIN employee_master as em On rmm.employee_id = em.employee_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
 
     connection.query(query, (err, results) => {
-        if (err) throw err;
-        res.status(200).json(results);
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'An error occurred while processing your request.' });
+          } else {
+            res.status(200).send(results);
+          }
+       
     })
 })
 

@@ -32,8 +32,13 @@ router.post('/api/admin/addUser', async (req, res) => {
         const values = [username,role, status, user_type, password, hashedPassword, employee_id];
 
         connection.query(query, values, (err, results) => {
-            if (err) throw err;
+          if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'An error occurred while processing your request.' });
+          } else {
             res.status(200).send('User Added Successfully');
+          }
+         
         });
     } catch (error) {
         console.error(error);
@@ -55,9 +60,14 @@ router.post('/api/admin/addUser', async (req, res) => {
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
     const query =`SELECT um.*,em.name as employee_name FROM user_master as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id WHERE um.username LIKE '%${name}%' OR um.email_id LIKE '%${email}%'  OR um.role LIKE '%${role}%' LIMIT ? OFFSET ?`;
     connection.query(query,[parseInt(pageSize), offset], (err, results) => {
-      if (err) throw err;
-      console.log(results);
-      res.status(200).json(results);
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).json(results);
+      }
+     
+     
     });
   });
 
@@ -115,8 +125,12 @@ router.post('/api/admin/addUser', async (req, res) => {
     const UserId = req.params.user_id;
     const query = 'DELETE FROM user_master WHERE user_id=?';
     connection.query(query, [UserId], (err, results) => {
-      if (err) throw err;
-      res.status(200).send(' User deleted successfully');
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send(' User deleted successfully');
+      }
     });
   });
 

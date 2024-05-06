@@ -15,8 +15,12 @@ router.post("/api/admin/addProject", protectedRoute, (req, res) => {
     query,
     [project_name, schedule_start_date, schedule_end_date],
     (err, results) => {
-      if (err) throw err;
-      res.status(200).send("Project Added Successfully");
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send("Project Added Successfully");
+      } 
     }
   );
 });
@@ -44,8 +48,13 @@ router.get("/api/admin/getallProject", (req, res) => {
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   const query = `SELECT * FROM project_master WHERE project_name LIKE '%${name}%' LIMIT ? OFFSET ?`;
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      res.status(200).json(results);
+    }
+    
   });
 });
 // without pagination
@@ -55,8 +64,12 @@ router.get("/api/admin/getProjects", (req, res) => {
     const query =
       "SELECT pm.*,t.team_id,t.employee_id,t.reporting_manager_id,em.name FROM project_master AS pm LEFT JOIN team AS t ON pm.project_id=t.project_id LEFT JOIN employee_master AS em ON t.reporting_manager_id=em.employee_id";
     connection.query(query, (err, results) => {
-      if (err) throw err;
-      res.status(200).json(results);
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).json(results);
+      }
     });
   } catch (error) {
     console.log(error);
@@ -133,8 +146,12 @@ router.delete(
     const ProjectId = req.params.project_id;
     const query = "DELETE FROM project_master WHERE project_id=?";
     connection.query(query, [ProjectId], (err, results) => {
-      if (err) throw err;
-      res.status(200).send("Project deleted successfully");
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send("Project deleted successfully");
+      }     
     });
   }
 );
@@ -191,8 +208,13 @@ router.get("/api/admin/getexcelpdfprojects", (req, res) => {
   try {
     const query = 'SELECT * FROM project_master';
     connection.query(query, (err, results) => {
-      if (err) throw err;
-      res.status(200).json(results);
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).json(results);
+      }
+    
     });
   } catch (error) {
     console.log(error);

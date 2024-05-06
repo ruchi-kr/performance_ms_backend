@@ -88,8 +88,13 @@ router.get("/api/admin/getEmployeeslist", (req, res) => {
   const query =
     "SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id";
   connection.query(query, (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      res.status(200).json(results);
+    }
+        
   });
 });
 
@@ -175,8 +180,12 @@ router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
   try {
     const query = "DELETE FROM employee_master WHERE employee_id=?";
     connection.query(query, [EmployeeId], (err, results) => {
-      if (err) throw err;
-      res.send("employee deleted successfully");
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send("employee deleted successfully");
+      }
     });
   } catch (error) {
     console.log(error);
@@ -188,8 +197,12 @@ router.get("/api/admin/getEmployeesList", (req, res) => {
   const query = "SELECT * FROM employee_master";
 
   connection.query(query, (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      res.status(200).json(results);
+    }
   });
 });
 

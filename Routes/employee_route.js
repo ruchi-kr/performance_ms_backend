@@ -45,8 +45,13 @@ router.post("/api/user/addTask", (req, res) => {
       actual_end_date,
     ],
     (err, results) => {
-      if (err) throw err;
-      res.status(200).send("Task Added Successfully");
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send("Task Added Successfully");
+      }
+     
     }
   );
 });
@@ -59,8 +64,13 @@ router.get("/api/user/getTasks/:employee_id", (req, res) => {
   // const query =
   //   "SELECT employee.* , em.* FROM employee JOIN user_master AS um ON um.user_id = employee.user_id JOIN employee_master AS em ON em.employee_id = um.employee_id WHERE employee.employee_id= ?";
   connection.query(query, [employee_id], (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      res.status(200).json(results);
+    }
+   
   });
 });
 
@@ -105,8 +115,13 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
       taskId,
     ],
     (err, results) => {
-      if (err) throw err;
-      res.status(200).send("Task Updated Successfully");
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).send("Task Updated Successfully");
+      }
+     
     }
   );
 });
@@ -116,8 +131,13 @@ router.delete("/api/user/deleteTask/:taskId", (req, res) => {
   const taskId = req.params.taskId;
   const query = "DELETE FROM employee WHERE id = ?";
   connection.query(query, [taskId], (err, results) => {
-    if (err) throw err;
-    res.status(200).send("Task Deleted Successfully");
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      res.status(200).send("Task Deleted Successfully");
+    }
+   
   });
 });
 
