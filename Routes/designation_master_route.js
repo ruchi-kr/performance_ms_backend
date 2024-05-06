@@ -11,8 +11,13 @@ router.post('/api/admin/addDesignation', (req, res) => {
     const { designation_name } = req.body;
     const query = 'INSERT INTO designation_master ( designation_name) VALUES (?)';
     connection.query(query, [designation_name], (err, results) => {
-        if (err) throw err;
-        res.status(200).send('designation Added Successfully');
+        if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'An error occurred while processing your request.' });
+          } else {
+            res.status(200).send('designation Added Successfully');
+          }
+        
     });
 });
 

@@ -35,6 +35,7 @@ app.use("/api", projectDetailedReportToManagerRoutes);
 app.use("/api", getCurrentTimeStampRoutes);
 
 app.use(require("./Routes/employee_report_route"));
+app.use(require("./Routes/module_master_route"));
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
