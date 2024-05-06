@@ -78,14 +78,15 @@ GROUP BY
 // Edit module
 router.post("/api/admin/editModule/:project_id", (req, res) => {
   const ModuleId = req.params.module_id;
-  const { project_id, module_name } = req.body;
+  const { project_id } = req.params;
+  const { module_name } = req.body;
   console.log("{ project_id, module_name }", project_id, module_name);
-  //   if (!ModuleId) {
-  //     return res.status(400).send("Module Id is required");
-  //   }
+  const updates = module_name.filter((item) => item.module_id);
+  const creates = module_name.filter((item) => !item.module_id);
+  console.log("updates", updates);
+  console.log("creates", creates);
 
-  //   const fetchQuery = "SELECT * FROM module_master WHERE module_id=?";
-  module_name.forEach((module) => {
+  updates.forEach((module) => {
     try {
       const query =
         "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
@@ -94,83 +95,53 @@ router.post("/api/admin/editModule/:project_id", (req, res) => {
         [module.item, project_id, module.module_id],
         (err, results) => {
           if (err) {
-            return res.status(StatusCodes.NO_CONTENT);
-          } else {
-            return res.status(StatusCodes.OK).json({ msg: "record edited" });
+            console.log("error");
           }
         }
       );
     } catch (error) {}
   });
-//   const updateQuery =
-//     "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+  creates.forEach((module) => {
+    try {
+      const query =
+        "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
+      connection.query(query, [module.item, project_id], (err, results) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+    } catch (error) {}
+  });
 
-//   // Fetch designation by ID
-//   connection.query(fetchQuery, [ModuleId], (fetchErr, fetchResults) => {
-//     if (fetchErr) {
-//       return res.status(500).send("Error fetching module data");
-//     }
+  res.status(StatusCodes.OK).json({ msg: "record edited" });
+});
 
-//     if (fetchResults.length === 0) {
-//       return res.status(404).send("module not found");
-//     }
+// delete module
+router.delete("/api/admin/deleteModule/:project_id", (req, res) => {
+  const { project_id } = req.params;
 
-//     const existingModule = fetchResults[0];
-//     const { module_name, project_id } = req.body;
+  // Check if the module is assigned to any employee
+  const checkQuery =
+    "SELECT COUNT(*) as count FROM module_master WHERE project_id = ?";
+  connection.query(checkQuery, [project_id], (checkErr, checkResults) => {
+    if (checkErr) throw checkErr;
 
-//     // Update designation data
-//     connection.query(
-//       updateQuery,
-//       [module_name, project_id, ModuleId],
-//       (updateErr, updateResults) => {
-//         if (updateErr) {
-//           return res.status(500).send("Error updating module");
-//         }
-
-//         // Fetch updated designation data
-//         connection.query(
-//           fetchQuery,
-//           [ModuleId],
-//           (fetchUpdatedErr, fetchUpdatedResults) => {
-//             if (fetchUpdatedErr) {
-//               return res.status(500).send("Error fetching updated module data");
-//             }
-
-//             const updatedModule = fetchUpdatedResults[0];
-//             if (updatedModule) {
-//               res.status(200).json(updatedModule); // Return updated project data
-//             } else {
-//               res.status(500).send("Failed to fetch updated module data"); // Handle case where updated project data is not found
-//             }
-//           }
-//         );
-//       }
-//     );
-//   });
-// });
-
-// // delete module
-// router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
-//   const ModuleId = req.params.module_id;
-
-//   // Check if the module is assigned to any employee
-//   const checkQuery =
-//     "SELECT COUNT(*) as count FROM module_master WHERE module_id = ?";
-//   connection.query(checkQuery, [ModuleId], (checkErr, checkResults) => {
-//     if (checkErr) throw checkErr;
-
-//     if (checkResults[0].count > 0) {
-//       res.status(400).send({
-//         error: "Module cannot be deleted as it is assigned to an employee",
-//       });
-//     } else {
-//       const deleteQuery = "DELETE FROM module_master WHERE module_id = ?";
-//       connection.query(deleteQuery, [ModuleId], (deleteErr, deleteResults) => {
-//         if (deleteErr) throw deleteErr;
-//         res.status(200).send("Module Deleted Successfully");
-//       });
-//     }
-//   });
+    if (checkResults[0].count === 0) {
+      res.status(400).send({
+        error: "Module cannot be deleted as project not found",
+      });
+    } else {
+      const deleteQuery = "DELETE FROM module_master WHERE project_id = ?";
+      connection.query(
+        deleteQuery,
+        [project_id],
+        (deleteErr, deleteResults) => {
+          if (deleteErr) throw deleteErr;
+          res.status(200).send("Module Deleted Successfully");
+        }
+      );
+    }
+  });
 });
 
 // // get list of all designation
