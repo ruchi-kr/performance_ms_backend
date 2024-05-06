@@ -1,7 +1,7 @@
 const dayjs = require("dayjs");
 const { StatusCodes } = require("http-status-codes");
 const GetCurrentTime = async (req, res) => {
-  const time = dayjs().format();
+  const time = dayjs().add(2  ,'h').format();
 
   res.status(StatusCodes.OK).json({ currentTimeStamp: time });
 };
