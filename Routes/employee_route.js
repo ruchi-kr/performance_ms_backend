@@ -22,13 +22,14 @@ router.post("/api/user/addTask", (req, res) => {
     end_time,
     status,
     remarks,
+    adhoc,
   } = req.body;
   let actual_end_date = null;
   if (status === "completed") {
     actual_end_date = moment.utc().format();
   }
   const query =
-    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date ) VALUES (?,?,?, ?, ?,?,?,?,?,?,?)";
+    "INSERT INTO employee ( project_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc ) VALUES (?,?,?, ?, ?,?,?,?,?,?,?,?)";
   connection.query(
     query,
     [
@@ -43,6 +44,7 @@ router.post("/api/user/addTask", (req, res) => {
       status,
       remarks,
       actual_end_date,
+      adhoc,
     ],
     (err, results) => {
       if (err) {
