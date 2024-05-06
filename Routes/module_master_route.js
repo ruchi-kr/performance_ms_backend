@@ -2,26 +2,27 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
+const { StatusCodes } = require("http-status-codes");
 
 // API FOR Module Master CRUD
 
 // CREATE module
 router.post("/api/admin/addModule", (req, res) => {
   const { module_name, project_id } = req.body;
-//   const module_array = JSON.stringify(module_name.map((module) => module.item));
-  const module_array = JSON.stringify(module_name);
-
-  const query =
-    "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
-  connection.query(query, [module_array, project_id], (err, results) => {
-    if (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while processing your request." });
-    }
+  const module_array = JSON.stringify(module_name.map((module) => module.item));
+  console.log("module_array", module_array);
+  module_name.forEach((module) => {
+    const query =
+      "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
+    connection.query(query, [module.item, project_id], (err, results) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      }
+    });
   });
-
   res.status(200).send("Module Added Successfully");
 });
 
@@ -39,11 +40,18 @@ router.get("/api/admin/getAllModule/", (req, res) => {
   SELECT 
     mm.project_id,
     pm.project_name,
-    module_name
+    CONCAT('[', COALESCE(
+        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '"}') SEPARATOR ','), 
+        '[]'
+    ), ']') AS module_name
 FROM 
     module_master as mm
 LEFT JOIN project_master as pm 
 ON pm.project_id = mm.project_id
+GROUP BY 
+    project_id;
+
+
 
 `;
 
@@ -55,6 +63,8 @@ ON pm.project_id = mm.project_id
         .json({ error: "An error occurred while processing your request." });
     } else {
       const temp = results.map((item) => {
+        console.log(item.modules);
+        console.log(item.modules);
         return {
           ...item,
           module_name: JSON.parse(item.module_name),
@@ -66,80 +76,101 @@ ON pm.project_id = mm.project_id
 });
 
 // Edit module
-router.post("/api/admin/editModule/:module_id", (req, res) => {
-  const {ModuleId} = params.module_id;
-const {module_name,project_id}= req.body;
-
-  const fetchQuery = "SELECT * FROM module_master WHERE module_id=?";
-  const updateQuery =
-    "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
-
-  // Fetch designation by ID
-  connection.query(fetchQuery, [ModuleId], (fetchErr, fetchResults) => {
-    if (fetchErr) {
-      return res.status(500).send("Error fetching module data");
-    }
-
-    if (fetchResults.length === 0) {
-      return res.status(404).send("module not found");
-    }
-
-    const existingModule = fetchResults[0];
-    const { module_name, project_id } = req.body;
-
-    // Update designation data
-    connection.query(
-      updateQuery,
-      [module_name, project_id, ModuleId],
-      (updateErr, updateResults) => {
-        if (updateErr) {
-          return res.status(500).send("Error updating module");
-        }
-
-        // Fetch updated designation data
-        connection.query(
-          fetchQuery,
-          [ModuleId],
-          (fetchUpdatedErr, fetchUpdatedResults) => {
-            if (fetchUpdatedErr) {
-              return res.status(500).send("Error fetching updated module data");
-            }
-
-            const updatedModule = fetchUpdatedResults[0];
-            if (updatedModule) {
-              res.status(200).json(updatedModule); // Return updated project data
-            } else {
-              res.status(500).send("Failed to fetch updated module data"); // Handle case where updated project data is not found
-            }
-          }
-        );
-      }
-    );
-  });
-});
-
-// delete module
-router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
+router.post("/api/admin/editModule/:project_id", (req, res) => {
   const ModuleId = req.params.module_id;
+  const { project_id, module_name } = req.body;
+  console.log("{ project_id, module_name }", project_id, module_name);
+  //   if (!ModuleId) {
+  //     return res.status(400).send("Module Id is required");
+  //   }
 
-  // Check if the module is assigned to any employee
-  const checkQuery =
-    "SELECT COUNT(*) as count FROM module_master WHERE module_id = ?";
-  connection.query(checkQuery, [ModuleId], (checkErr, checkResults) => {
-    if (checkErr) throw checkErr;
-
-    if (checkResults[0].count > 0) {
-      res.status(400).send({
-        error: "Module cannot be deleted as it is assigned to an employee",
-      });
-    } else {
-      const deleteQuery = "DELETE FROM module_master WHERE module_id = ?";
-      connection.query(deleteQuery, [ModuleId], (deleteErr, deleteResults) => {
-        if (deleteErr) throw deleteErr;
-        res.status(200).send("Module Deleted Successfully");
-      });
-    }
+  //   const fetchQuery = "SELECT * FROM module_master WHERE module_id=?";
+  module_name.forEach((module) => {
+    try {
+      const query =
+        "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+      connection.query(
+        query,
+        [module.item, project_id, module.module_id],
+        (err, results) => {
+          if (err) {
+            return res.status(StatusCodes.NO_CONTENT);
+          } else {
+            return res.status(StatusCodes.OK).json({ msg: "record edited" });
+          }
+        }
+      );
+    } catch (error) {}
   });
+//   const updateQuery =
+//     "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+
+//   // Fetch designation by ID
+//   connection.query(fetchQuery, [ModuleId], (fetchErr, fetchResults) => {
+//     if (fetchErr) {
+//       return res.status(500).send("Error fetching module data");
+//     }
+
+//     if (fetchResults.length === 0) {
+//       return res.status(404).send("module not found");
+//     }
+
+//     const existingModule = fetchResults[0];
+//     const { module_name, project_id } = req.body;
+
+//     // Update designation data
+//     connection.query(
+//       updateQuery,
+//       [module_name, project_id, ModuleId],
+//       (updateErr, updateResults) => {
+//         if (updateErr) {
+//           return res.status(500).send("Error updating module");
+//         }
+
+//         // Fetch updated designation data
+//         connection.query(
+//           fetchQuery,
+//           [ModuleId],
+//           (fetchUpdatedErr, fetchUpdatedResults) => {
+//             if (fetchUpdatedErr) {
+//               return res.status(500).send("Error fetching updated module data");
+//             }
+
+//             const updatedModule = fetchUpdatedResults[0];
+//             if (updatedModule) {
+//               res.status(200).json(updatedModule); // Return updated project data
+//             } else {
+//               res.status(500).send("Failed to fetch updated module data"); // Handle case where updated project data is not found
+//             }
+//           }
+//         );
+//       }
+//     );
+//   });
+// });
+
+// // delete module
+// router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
+//   const ModuleId = req.params.module_id;
+
+//   // Check if the module is assigned to any employee
+//   const checkQuery =
+//     "SELECT COUNT(*) as count FROM module_master WHERE module_id = ?";
+//   connection.query(checkQuery, [ModuleId], (checkErr, checkResults) => {
+//     if (checkErr) throw checkErr;
+
+//     if (checkResults[0].count > 0) {
+//       res.status(400).send({
+//         error: "Module cannot be deleted as it is assigned to an employee",
+//       });
+//     } else {
+//       const deleteQuery = "DELETE FROM module_master WHERE module_id = ?";
+//       connection.query(deleteQuery, [ModuleId], (deleteErr, deleteResults) => {
+//         if (deleteErr) throw deleteErr;
+//         res.status(200).send("Module Deleted Successfully");
+//       });
+//     }
+//   });
 });
 
 // // get list of all designation
