@@ -67,6 +67,7 @@ router.post("/api/login", (req, res) => {
               user_type: user.user_type,
               email_id: user.email_id,
               mobile_no: user.mobile_no,
+              status: user.status,
             };
 
             res.status(200).send({
