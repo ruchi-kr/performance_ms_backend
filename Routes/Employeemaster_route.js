@@ -6,13 +6,7 @@ const connection = require("../db");
 // api for employee CRUD
 
 // CREATE
-// router.post('/api/admin/addEmployee', (req, res) => {
-//     const {name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id} = req.body;
-//     const query = 'INSERT INTO employee_master ( name, designation, doj, experience,skills,mobile_no,email,reporting_manager_id) VALUES (?, ?, ?,?,?,?,?,?)';
-//     connection.query(query, [name, designation, doj, experience, skills, mobile_no, email, reporting_manager_id], (err, results) => {
-//       if (err) throw err;
-//       res.status(200).send('Employee Added Successfully');
-//     });
+
 //   });
 router.post("/api/admin/addEmployee", (req, res) => {
   const {
@@ -20,6 +14,8 @@ router.post("/api/admin/addEmployee", (req, res) => {
     manager_id,
     designation_id,
     doj,
+    dob,
+    job_id,
     experience,
     skills,
     mobile_no,
@@ -33,12 +29,12 @@ router.post("/api/admin/addEmployee", (req, res) => {
     if (checkErr) throw checkErr;
 
     if (checkResults[0].count > 0) {
-      res
+      return res
         .status(400)
         .send({ error: "User with this email already registered" });
     } else {
       const insertQuery =
-        "INSERT INTO employee_master (name,manager_id, designation_id, doj, experience, skills, mobile_no, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO employee_master (name,manager_id, designation_id, doj,dob,job_id, experience, skills, mobile_no, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)";
       connection.query(
         insertQuery,
         [
@@ -46,6 +42,8 @@ router.post("/api/admin/addEmployee", (req, res) => {
           manager_id,
           designation_id,
           doj,
+          dob,
+          job_id,
           experience,
           skills,
           mobile_no,
@@ -53,7 +51,7 @@ router.post("/api/admin/addEmployee", (req, res) => {
         ],
         (insertErr, insertResults) => {
           if (insertErr) throw insertErr;
-          res.status(200).send("Employee Added Successfully");
+          return res.status(200).send("Employee Added Successfully");
         }
       );
     }
@@ -79,8 +77,13 @@ router.get("/api/admin/getEmployees", (req, res) => {
   // OR u.email LIKE '%${email}%'
   // OR u.email LIKE '%${email}%'
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-    if (err) throw err;
-    res.status(200).json(results);
+    // if (err) throw err;
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+    return res.status(200).json(results);
+    }
   });
 });
 
@@ -90,9 +93,9 @@ router.get("/api/admin/getEmployeeslist", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res.status(500).json({ error: 'An error occurred while processing your request.' });
     } else {
-      res.status(200).json(results);
+      return res.status(200).json(results);
     }
         
   });
@@ -108,7 +111,7 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
 
   const fetchQuery = "SELECT * FROM employee_master WHERE employee_id=?";
   const updateQuery =
-    "UPDATE employee_master SET name=?, manager_id=?, designation_id=?, doj=?, experience=?, skills=?, mobile_no=?, email=? WHERE employee_id=?";
+    "UPDATE employee_master SET name=?, manager_id=?, designation_id=?, doj=?, dob=?, job_id=?, experience=?, skills=?, mobile_no=?, email=? WHERE employee_id=?";
 
   // Fetch project by ID
   connection.query(fetchQuery, [employeeId], (fetchErr, fetchResults) => {
@@ -126,6 +129,8 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
       manager_id,
       designation_id,
       doj,
+      dob,
+      job_id,
       experience,
       skills,
       mobile_no,
@@ -140,6 +145,8 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
         manager_id,
         designation_id,
         doj,
+        dob,
+        job_id,
         experience,
         skills,
         mobile_no,
@@ -148,6 +155,7 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
       ],
       (updateErr, updateResults) => {
         if (updateErr) {
+          console.log(updateErr);
           return res.status(500).send("Error updating employee");
         }
 
@@ -164,9 +172,9 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
 
             const updatedEmployee = fetchUpdatedResults[0];
             if (updatedEmployee) {
-              res.status(200).json(updatedEmployee); // Return updated project data
+              return res.status(200).json(updatedEmployee); // Return updated project data
             } else {
-              res.status(500).send("Failed to fetch updated employee data"); // Handle case where updated project data is not found
+              return res.status(500).send("Failed to fetch updated employee data"); // Handle case where updated project data is not found
             }
           }
         );
@@ -182,9 +190,9 @@ router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
     connection.query(query, [EmployeeId], (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        return res.status(500).json({ error: 'An error occurred while processing your request.' });
       } else {
-        res.status(200).send("employee deleted successfully");
+        return res.status(200).send("employee deleted successfully");
       }
     });
   } catch (error) {
@@ -199,9 +207,9 @@ router.get("/api/admin/getEmployeesList", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res.status(500).json({ error: 'An error occurred while processing your request.' });
     } else {
-      res.status(200).json(results);
+      return res.status(200).json(results);
     }
   });
 });
