@@ -9,29 +9,38 @@ const { StatusCodes } = require("http-status-codes");
 router.post("/api/admin/addModule", (req, res) => {
   const { module_name, project_id } = req.body;
   // const module_array = JSON.stringify(module_name.map((module) => module.item));
-  const module_array = JSON.stringify(module_name.map((module) => ({
-    item: module.item,
-    to_date: module.to_date,
-    from_date: module.from_date
-  })));
+  const module_array = JSON.stringify(
+    module_name.map((module) => ({
+      item: module.item,
+      to_date: module.to_date,
+      from_date: module.from_date,
+    }))
+  );
   console.log("module_array", module_array);
   module_name.forEach((module) => {
-
     if (module.to_date < module.from_date) {
-      res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+      res
+        .status(400)
+        .send(
+          "Invalid date range: to_date should be greater than or equal to from_date"
+        );
       return; // Exit the loop if the condition is not met
     }
 
     const query =
       "INSERT INTO module_master ( module_name,to_date,from_date,project_id) VALUES (?,?,?,?)";
-    connection.query(query, [module.item,module.to_date, module.from_date, project_id], (err, results) => {
-      if (err) {
-        console.log(err);
-        res
-          .status(500)
-          .json({ error: "An error occurred while processing your request." });
+    connection.query(
+      query,
+      [module.item, module.to_date, module.from_date, project_id],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+          res.status(500).json({
+            error: "An error occurred while processing your request.",
+          });
+        }
       }
-    });
+    );
   });
   res.status(200).send("Module Added Successfully");
 });
@@ -83,7 +92,6 @@ GROUP BY
     }
   });
 });
-
 
 // Get Module for project
 router.get("/api/admin/getAllModule/:project_id", (req, res) => {
@@ -168,23 +176,47 @@ GROUP BY
 // Edit module
 router.post("/api/admin/editModule/:project_id", (req, res) => {
   const { project_id } = req.params;
-  const { module_name} = req.body;
+  const { module_name } = req.body;
   console.log("{ project_id, module_name }", project_id, module_name);
+
   const updates = module_name.filter((item) => item.module_id);
   const creates = module_name.filter((item) => !item.module_id);
   console.log("updates", updates);
   console.log("creates", creates);
 
+  // Extracting module IDs from the array of objects
+  const moduleIdsToNotDelete = updates.map((module) => module.module_id);
+
+  const sql = `DELETE FROM module_master WHERE module_id NOT IN (?) AND project_id=?`;
+  // Execute the query
+  connection.query(sql, [moduleIdsToNotDelete, project_id], (err, result) => {
+    if (err) {
+      console.error("Error deleting modules:", err);
+    }
+    console.log("Modules deleted successfully");
+  });
+
+  console.log("ids to not delete", moduleIdsToNotDelete);
   updates.forEach((module) => {
     if (module.to_date < module.from_date) {
-      return res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+      return res
+        .status(400)
+        .send(
+          "Invalid date range: to_date should be greater than or equal to from_date"
+        );
     }
     try {
       const query =
         "UPDATE module_master SET module_name=?, to_date=?, from_date=?, project_id=? WHERE module_id=?";
       connection.query(
         query,
-        [module.item, module.to_date, module.from_date,project_id, module.module_id],
+        [
+          module.item,
+          module.to_date,
+          module.from_date,
+          project_id,
+          module.module_id,
+        ],
         (err, results) => {
           if (err) {
             console.log("error");
@@ -195,7 +227,11 @@ router.post("/api/admin/editModule/:project_id", (req, res) => {
   });
   creates.forEach((module) => {
     if (module.to_date < module.from_date) {
-      return res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+      return res
+        .status(400)
+        .send(
+          "Invalid date range: to_date should be greater than or equal to from_date"
+        );
     }
     try {
       const query =
