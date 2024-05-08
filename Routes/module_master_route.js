@@ -5,16 +5,26 @@ const connection = require("../db");
 const { StatusCodes } = require("http-status-codes");
 
 // API FOR Module Master CRUD
-
 // CREATE module
 router.post("/api/admin/addModule", (req, res) => {
   const { module_name, project_id } = req.body;
-  const module_array = JSON.stringify(module_name.map((module) => module.item));
+  // const module_array = JSON.stringify(module_name.map((module) => module.item));
+  const module_array = JSON.stringify(module_name.map((module) => ({
+    item: module.item,
+    to_date: module.to_date,
+    from_date: module.from_date
+  })));
   console.log("module_array", module_array);
   module_name.forEach((module) => {
+
+    if (module.to_date < module.from_date) {
+      res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+      return; // Exit the loop if the condition is not met
+    }
+
     const query =
-      "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
-    connection.query(query, [module.item, project_id], (err, results) => {
+      "INSERT INTO module_master ( module_name,to_date,from_date,project_id) VALUES (?,?,?,?)";
+    connection.query(query, [module.item,module.to_date, module.from_date, project_id], (err, results) => {
       if (err) {
         console.log(err);
         res
@@ -40,8 +50,10 @@ router.get("/api/admin/getAllModule/", (req, res) => {
   SELECT 
     mm.project_id,
     pm.project_name,
+    pm.schedule_start_date,
+    pm.schedule_end_date,
     CONCAT('[', COALESCE(
-        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '"}') SEPARATOR ','), 
+        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '","to_date": "', mm.to_date, '", "from_date": "', mm.from_date, '"}') SEPARATOR ','), 
         '[]'
     ), ']') AS module_name
 FROM 
@@ -50,9 +62,6 @@ LEFT JOIN project_master as pm
 ON pm.project_id = mm.project_id
 GROUP BY 
     project_id;
-
-
-
 `;
 
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
@@ -74,6 +83,8 @@ GROUP BY
     }
   });
 });
+
+
 // Get Module for project
 router.get("/api/admin/getAllModule/:project_id", (req, res) => {
   const { project_id } = req.params;
@@ -114,10 +125,50 @@ GROUP BY
 });
 
 // Edit module
+// router.post("/api/admin/editModule/:project_id", (req, res) => {
+//   const ModuleId = req.params.module_id;
+//   const { project_id } = req.params;
+//   const { module_name } = req.body;
+//   console.log("{ project_id, module_name }", project_id, module_name);
+//   const updates = module_name.filter((item) => item.module_id);
+//   const creates = module_name.filter((item) => !item.module_id);
+//   console.log("updates", updates);
+//   console.log("creates", creates);
+
+//   updates.forEach((module) => {
+//     try {
+//       const query =
+//         "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+//       connection.query(
+//         query,
+//         [module.item, project_id, module.module_id],
+//         (err, results) => {
+//           if (err) {
+//             console.log("error");
+//           }
+//         }
+//       );
+//     } catch (error) {}
+//   });
+//   creates.forEach((module) => {
+//     try {
+//       const query =
+//         "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
+//       connection.query(query, [module.item, project_id], (err, results) => {
+//         if (err) {
+//           console.log(err);
+//         }
+//       });
+//     } catch (error) {}
+//   });
+
+//   res.status(StatusCodes.OK).json({ msg: "record edited" });
+// });
+
+// Edit module
 router.post("/api/admin/editModule/:project_id", (req, res) => {
-  const ModuleId = req.params.module_id;
   const { project_id } = req.params;
-  const { module_name } = req.body;
+  const { module_name} = req.body;
   console.log("{ project_id, module_name }", project_id, module_name);
   const updates = module_name.filter((item) => item.module_id);
   const creates = module_name.filter((item) => !item.module_id);
@@ -125,12 +176,15 @@ router.post("/api/admin/editModule/:project_id", (req, res) => {
   console.log("creates", creates);
 
   updates.forEach((module) => {
+    if (module.to_date < module.from_date) {
+      return res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+    }
     try {
       const query =
-        "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+        "UPDATE module_master SET module_name=?, to_date=?, from_date=?, project_id=? WHERE module_id=?";
       connection.query(
         query,
-        [module.item, project_id, module.module_id],
+        [module.item, module.to_date, module.from_date,project_id, module.module_id],
         (err, results) => {
           if (err) {
             console.log("error");
@@ -140,15 +194,24 @@ router.post("/api/admin/editModule/:project_id", (req, res) => {
     } catch (error) {}
   });
   creates.forEach((module) => {
+    if (module.to_date < module.from_date) {
+      return res.status(400).send("Invalid date range: to_date should be greater than or equal to from_date");
+    }
     try {
       const query =
-        "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
-      connection.query(query, [module.item, project_id], (err, results) => {
-        if (err) {
-          console.log(err);
+        "INSERT INTO module_master (module_name, to_date, from_date, project_id) VALUES (?, ?, ?, ?)";
+      connection.query(
+        query,
+        [module.item, module.to_date, module.from_date, project_id],
+        (err, results) => {
+          if (err) {
+            console.log(err);
+          }
         }
-      });
-    } catch (error) {}
+      );
+    } catch (error) {
+      console.log(error);
+    }
   });
 
   res.status(StatusCodes.OK).json({ msg: "record edited" });
