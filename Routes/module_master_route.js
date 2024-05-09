@@ -76,24 +76,24 @@ router.get("/api/admin/getAllModule/", (req, res) => {
 
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
 
-  const query = `
-  SELECT 
-    mm.project_id,
-    pm.project_name,
-    pm.schedule_start_date,
-    pm.schedule_end_date,
-    CONCAT('[', COALESCE(
-        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '","to_date": "', mm.to_date, '", "from_date": "', mm.from_date, '"}') SEPARATOR ','), 
-        '[]'
-    ), ']') AS module_name
-FROM 
-    module_master as mm
-LEFT JOIN project_master as pm 
-ON pm.project_id = mm.project_id
-GROUP BY 
-    project_id;
-`;
-
+//   const query = `
+//   SELECT 
+//     mm.project_id,
+//     pm.project_name,
+//     pm.schedule_start_date,
+//     pm.schedule_end_date,
+//     CONCAT('[', COALESCE(
+//         GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '","to_date": "', mm.to_date, '", "from_date": "', mm.from_date, '"}') SEPARATOR ','), 
+//         '[]'
+//     ), ']') AS module_name
+// FROM 
+//     module_master as mm
+// LEFT JOIN project_master as pm 
+// ON pm.project_id = mm.project_id
+// GROUP BY 
+//     project_id;
+// `;
+const query = "SELECT * from module_master"
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
     if (err) {
       console.log(err);
@@ -101,15 +101,8 @@ GROUP BY
         .status(500)
         .json({ error: "An error occurred while processing your request." });
     } else {
-      const temp = results.map((item) => {
-        console.log(item.modules);
-        console.log(item.modules);
-        return {
-          ...item,
-          module_name: JSON.parse(item.module_name),
-        };
-      });
-      res.status(200).send(temp);
+      
+      res.status(200).send(results);
     }
   });
 });
