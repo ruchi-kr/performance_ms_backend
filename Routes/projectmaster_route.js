@@ -8,12 +8,12 @@ const connection = require("../db");
 
 // CREATE project
 router.post("/api/admin/addProject", protectedRoute, (req, res) => {
-  const { project_name, schedule_start_date, schedule_end_date,stage,module_id } = req.body;
+  const { project_name, schedule_start_date, schedule_end_date,stage} = req.body;
   const query =
     "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
   connection.query(
     query,
-    [project_name, schedule_start_date, schedule_end_date],
+    [project_name, schedule_start_date, schedule_end_date,stage],
     (err, results) => {
       if (err) {
         console.log(err);
