@@ -7,41 +7,62 @@ const { StatusCodes } = require("http-status-codes");
 // API FOR Module Master CRUD
 // CREATE module
 router.post("/api/admin/addModule", (req, res) => {
-  const { module_name, project_id } = req.body;
-  // const module_array = JSON.stringify(module_name.map((module) => module.item));
-  const module_array = JSON.stringify(
-    module_name.map((module) => ({
-      item: module.item,
-      to_date: module.to_date,
-      from_date: module.from_date,
-    }))
-  );
-  console.log("module_array", module_array);
-  module_name.forEach((module) => {
-    if (module.to_date < module.from_date) {
-      res
-        .status(400)
-        .send(
-          "Invalid date range: to_date should be greater than or equal to from_date"
-        );
-      return; // Exit the loop if the condition is not met
-    }
-
-    const query =
-      "INSERT INTO module_master ( module_name,to_date,from_date,project_id) VALUES (?,?,?,?)";
-    connection.query(
-      query,
-      [module.item, module.to_date, module.from_date, project_id],
-      (err, results) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({
-            error: "An error occurred while processing your request.",
-          });
-        }
-      }
-    );
+  const { module_name, project_id, from_date, to_date, status } = req.body;
+  console.log("{ module_name, project_id, from_date, to_date, status }", {
+    module_name,
+    project_id,
+    from_date,
+    to_date,
+    status,
   });
+  // const module_array = JSON.stringify(module_name.map((module) => module.item));
+  // const module_array = JSON.stringify(
+  //   module_name.map((module) => ({
+  //     item: module.item,
+  //     to_date: module.to_date,
+  //     from_date: module.from_date,
+  //   }))
+  // );
+  // console.log("module_array", module_array);
+  // module_name.forEach((module) => {
+  //   if (module.to_date < module.from_date) {
+  //     res
+  //       .status(400)
+  //       .send(
+  //         "Invalid date range: to_date should be greater than or equal to from_date"
+  //       );
+  //     return; // Exit the loop if the condition is not met
+  //   }
+
+  //   const query =
+  //     "INSERT INTO module_master ( module_name,to_date,from_date,project_id) VALUES (?,?,?,?)";
+  //   connection.query(
+  //     query,
+  //     [module.item, module.to_date, module.from_date, project_id],
+  //     (err, results) => {
+  //       if (err) {
+  //         console.log(err);
+  //         res.status(500).json({
+  //           error: "An error occurred while processing your request.",
+  //         });
+  //       }
+  //     }
+  //   );
+  // });
+  const query =
+    "INSERT INTO module_master ( module_name,to_date,from_date,project_id,status) VALUES (?,?,?,?,?)";
+  connection.query(
+    query,
+    [module_name, to_date, from_date, project_id, status],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({
+          error: "An error occurred while processing your request.",
+        });
+      }
+    }
+  );
   res.status(200).send("Module Added Successfully");
 });
 
