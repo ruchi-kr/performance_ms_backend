@@ -89,7 +89,7 @@ router.post(
 
     const fetchQuery = "SELECT * FROM project_master WHERE project_id=?";
     const updateQuery =
-      "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=? stage=? module_id=? WHERE 	project_id=?";
+      "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
 
     // Fetch project by ID
     connection.query(fetchQuery, [projectId], (fetchErr, fetchResults) => {
