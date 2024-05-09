@@ -8,9 +8,9 @@ const connection = require("../db");
 
 // CREATE project
 router.post("/api/admin/addProject", protectedRoute, (req, res) => {
-  const { project_name, schedule_start_date, schedule_end_date } = req.body;
+  const { project_name, schedule_start_date, schedule_end_date,stage,module_id } = req.body;
   const query =
-    "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date) VALUES (?, ?, ?)";
+    "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
   connection.query(
     query,
     [project_name, schedule_start_date, schedule_end_date],
@@ -89,7 +89,7 @@ router.post(
 
     const fetchQuery = "SELECT * FROM project_master WHERE project_id=?";
     const updateQuery =
-      "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=? WHERE 	project_id=?";
+      "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=? stage=? module_id=? WHERE 	project_id=?";
 
     // Fetch project by ID
     connection.query(fetchQuery, [projectId], (fetchErr, fetchResults) => {
@@ -102,12 +102,12 @@ router.post(
       }
 
       const existingProject = fetchResults[0];
-      const { project_name, schedule_start_date, schedule_end_date } = req.body;
+      const { project_name, schedule_start_date, schedule_end_date,stage,module_id } = req.body;
 
       // Update project data
       connection.query(
         updateQuery,
-        [project_name, schedule_start_date, schedule_end_date, projectId],
+        [project_name, schedule_start_date, schedule_end_date, stage,module_id,projectId],
         (updateErr, updateResults) => {
           if (updateErr) {
             return res.status(500).send("Error updating project");
