@@ -19,6 +19,7 @@ const projectDetailedReportToManagerRoutes = require("./Routes/projectDetailedRe
 const getCurrentTimeStampRoutes = require("./Routes/currentTimeRouter");
 const managerRemarksController = require("./Routes/managerRemarksController");
 const projectPlanRoutes = require("./Routes/projectPlanRoutes");
+const moduleTasksRoutes = require("./Routes/moduleTasksRouter")
 app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
@@ -36,6 +37,7 @@ app.use("/api", projectDetailedReportToManagerRoutes);
 app.use("/api", getCurrentTimeStampRoutes);
 app.use("/api", managerRemarksController);
 app.use("/api", projectPlanRoutes);
+app.use("/api", moduleTasksRoutes);
 
 app.use(require("./Routes/employee_report_route"));
 app.use(require("./Routes/module_master_route"));

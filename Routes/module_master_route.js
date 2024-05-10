@@ -68,43 +68,57 @@ router.post("/api/admin/addModule", (req, res) => {
 
 // Get Module
 router.get("/api/admin/getAllModule/", (req, res) => {
-  const { page = 1, pageSize = 10, name = "" } = req.query;
-  // Validate page and pageSize
-  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-    return res.status(400).send("Invalid page or pageSize");
-  }
+  let {
+    search,
+    page = 1,
+    pageSize = 10,
+    sortBy = "module_name",
+    sortOrder = "ASC",
+  } = req.query;
+  console.log("search term", search);
+  const offset = (Number(page) - 1) * Number(pageSize);
 
-  const offset = (parseInt(page) - 1) * parseInt(pageSize);
-
-//   const query = `
-//   SELECT 
-//     mm.project_id,
-//     pm.project_name,
-//     pm.schedule_start_date,
-//     pm.schedule_end_date,
-//     CONCAT('[', COALESCE(
-//         GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '","to_date": "', mm.to_date, '", "from_date": "', mm.from_date, '"}') SEPARATOR ','), 
-//         '[]'
-//     ), ']') AS module_name
-// FROM 
-//     module_master as mm
-// LEFT JOIN project_master as pm 
-// ON pm.project_id = mm.project_id
-// GROUP BY 
-//     project_id;
-// `;
-const query = "SELECT * from module_master"
-  connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-    if (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while processing your request." });
-    } else {
-      
-      res.status(200).send(results);
+  // Query to fetch paginated results
+  const paginatedQuery =
+    "SELECT * FROM module_master WHERE module_name LIKE ? LIMIT ? OFFSET ?";
+  connection.query(
+    paginatedQuery,
+    [`%${search}%`, Number(pageSize), offset],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res 
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else {
+        // Query to fetch total count of records
+        const totalCountQuery =
+          "SELECT COUNT(*) AS totalRecords FROM module_master";
+        connection.query(totalCountQuery, (err, totalCountResult) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({
+              error: "An error occurred while processing your request.",
+            });
+          } else {
+            const totalCount = totalCountResult[0].totalRecords;
+            const totalPages = Math.ceil(totalCount / Number(pageSize));
+            res.status(200).send({
+              results,
+              pagination: {
+                totalRecords: totalCount,
+                pageSize: Number(pageSize),
+                totalPages,
+                currentPage: Number(page),
+                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+              },
+            });
+          }
+        });
+      }
     }
-  });
+  );
 });
 
 // Get Module for project
@@ -147,23 +161,78 @@ GROUP BY
 });
 
 // Edit module
+router.patch("/api/admin/editModule/:module_id", (req, res) => {
+  const { module_id } = req.params;
+
+  const { project_id, module_name, from_date, to_date, status } = req.body;
+  console.log("{ project_id, module_name, from_date, to_date, status }", {
+    project_id,
+    module_name,
+    from_date,
+    to_date,
+    status,
+  });
+  const query =
+    "UPDATE module_master SET project_id=?,module_name=?,from_date=?,to_date=?,status=? WHERE module_id=? ";
+  try {
+    connection.query(
+      query,
+      [project_id, module_name, from_date, to_date, status, module_id],
+      (err, results) => {
+        if (err) console.log(err);
+      }
+    );
+  } catch (error) {
+    return res.status(StatusCodes.OK).json({ msg: "Record not edited" });
+  }
+
+  res.status(StatusCodes.OK).json({ msg: "record edited" });
+});
+
+// Edit module
 // router.post("/api/admin/editModule/:project_id", (req, res) => {
-//   const ModuleId = req.params.module_id;
 //   const { project_id } = req.params;
 //   const { module_name } = req.body;
 //   console.log("{ project_id, module_name }", project_id, module_name);
+
 //   const updates = module_name.filter((item) => item.module_id);
 //   const creates = module_name.filter((item) => !item.module_id);
 //   console.log("updates", updates);
 //   console.log("creates", creates);
 
+//   // Extracting module IDs from the array of objects
+//   const moduleIdsToNotDelete = updates.map((module) => module.module_id);
+
+//   const sql = `DELETE FROM module_master WHERE module_id NOT IN (?) AND project_id=?`;
+//   // Execute the query
+//   connection.query(sql, [moduleIdsToNotDelete, project_id], (err, result) => {
+//     if (err) {
+//       console.error("Error deleting modules:", err);
+//     }
+//     console.log("Modules deleted successfully");
+//   });
+
+//   console.log("ids to not delete", moduleIdsToNotDelete);
 //   updates.forEach((module) => {
+//     if (module.to_date < module.from_date) {
+//       return res
+//         .status(400)
+//         .send(
+//           "Invalid date range: to_date should be greater than or equal to from_date"
+//         );
+//     }
 //     try {
 //       const query =
-//         "UPDATE module_master SET module_name=?,project_id=? WHERE module_id=?";
+//         "UPDATE module_master SET module_name=?, to_date=?, from_date=?, project_id=? WHERE module_id=?";
 //       connection.query(
 //         query,
-//         [module.item, project_id, module.module_id],
+//         [
+//           module.item,
+//           module.to_date,
+//           module.from_date,
+//           project_id,
+//           module.module_id,
+//         ],
 //         (err, results) => {
 //           if (err) {
 //             console.log("error");
@@ -173,125 +242,42 @@ GROUP BY
 //     } catch (error) {}
 //   });
 //   creates.forEach((module) => {
+//     if (module.to_date < module.from_date) {
+//       return res
+//         .status(400)
+//         .send(
+//           "Invalid date range: to_date should be greater than or equal to from_date"
+//         );
+//     }
 //     try {
 //       const query =
-//         "INSERT INTO module_master ( module_name,project_id) VALUES (?,?)";
-//       connection.query(query, [module.item, project_id], (err, results) => {
-//         if (err) {
-//           console.log(err);
+//         "INSERT INTO module_master (module_name, to_date, from_date, project_id) VALUES (?, ?, ?, ?)";
+//       connection.query(
+//         query,
+//         [module.item, module.to_date, module.from_date, project_id],
+//         (err, results) => {
+//           if (err) {
+//             console.log(err);
+//           }
 //         }
-//       });
-//     } catch (error) {}
+//       );
+//     } catch (error) {
+//       console.log(error);
+//     }
 //   });
 
 //   res.status(StatusCodes.OK).json({ msg: "record edited" });
 // });
 
-// Edit module
-router.post("/api/admin/editModule/:project_id", (req, res) => {
-  const { project_id } = req.params;
-  const { module_name } = req.body;
-  console.log("{ project_id, module_name }", project_id, module_name);
-
-  const updates = module_name.filter((item) => item.module_id);
-  const creates = module_name.filter((item) => !item.module_id);
-  console.log("updates", updates);
-  console.log("creates", creates);
-
-  // Extracting module IDs from the array of objects
-  const moduleIdsToNotDelete = updates.map((module) => module.module_id);
-
-  const sql = `DELETE FROM module_master WHERE module_id NOT IN (?) AND project_id=?`;
-  // Execute the query
-  connection.query(sql, [moduleIdsToNotDelete, project_id], (err, result) => {
-    if (err) {
-      console.error("Error deleting modules:", err);
-    }
-    console.log("Modules deleted successfully");
-  });
-
-  console.log("ids to not delete", moduleIdsToNotDelete);
-  updates.forEach((module) => {
-    if (module.to_date < module.from_date) {
-      return res
-        .status(400)
-        .send(
-          "Invalid date range: to_date should be greater than or equal to from_date"
-        );
-    }
-    try {
-      const query =
-        "UPDATE module_master SET module_name=?, to_date=?, from_date=?, project_id=? WHERE module_id=?";
-      connection.query(
-        query,
-        [
-          module.item,
-          module.to_date,
-          module.from_date,
-          project_id,
-          module.module_id,
-        ],
-        (err, results) => {
-          if (err) {
-            console.log("error");
-          }
-        }
-      );
-    } catch (error) {}
-  });
-  creates.forEach((module) => {
-    if (module.to_date < module.from_date) {
-      return res
-        .status(400)
-        .send(
-          "Invalid date range: to_date should be greater than or equal to from_date"
-        );
-    }
-    try {
-      const query =
-        "INSERT INTO module_master (module_name, to_date, from_date, project_id) VALUES (?, ?, ?, ?)";
-      connection.query(
-        query,
-        [module.item, module.to_date, module.from_date, project_id],
-        (err, results) => {
-          if (err) {
-            console.log(err);
-          }
-        }
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  });
-
-  res.status(StatusCodes.OK).json({ msg: "record edited" });
-});
-
 // delete module
-router.delete("/api/admin/deleteModule/:project_id", (req, res) => {
-  const { project_id } = req.params;
+router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
+  const { module_id } = req.params;
 
   // Check if the module is assigned to any employee
-  const checkQuery =
-    "SELECT COUNT(*) as count FROM module_master WHERE project_id = ?";
-  connection.query(checkQuery, [project_id], (checkErr, checkResults) => {
-    if (checkErr) throw checkErr;
-
-    if (checkResults[0].count === 0) {
-      res.status(400).send({
-        error: "Module cannot be deleted as project not found",
-      });
-    } else {
-      const deleteQuery = "DELETE FROM module_master WHERE project_id = ?";
-      connection.query(
-        deleteQuery,
-        [project_id],
-        (deleteErr, deleteResults) => {
-          if (deleteErr) throw deleteErr;
-          res.status(200).send("Module Deleted Successfully");
-        }
-      );
-    }
+  const deleteQuery = "DELETE FROM module_master WHERE module_id = ?";
+  connection.query(deleteQuery, [module_id], (deleteErr, deleteResults) => {
+    if (deleteErr) console.log(deleteErr);
+    res.status(200).json({ msg: "Module Deleted Successfully" });
   });
 });
 
