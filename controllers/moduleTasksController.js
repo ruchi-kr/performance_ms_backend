@@ -3,7 +3,7 @@ const connection = require("../db");
 
 const GetAllModuleTasks = async (req, res) => {
   let {
-    search="",
+    search = "",
     page = 1,
     pageSize = 10,
     sortBy = "module_name",
@@ -19,7 +19,64 @@ const GetAllModuleTasks = async (req, res) => {
     (err, results) => {
       if (err) {
         console.log(err);
-        res 
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else {
+        // Query to fetch total count of records
+        const totalCountQuery =
+          "SELECT COUNT(*) AS totalRecords FROM task_master";
+        connection.query(totalCountQuery, (err, totalCountResult) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({
+              error: "An error occurred while processing your request.",
+            });
+          } else {
+            const totalCount = totalCountResult[0].totalRecords;
+            const totalPages = Math.ceil(totalCount / Number(pageSize));
+            res.status(200).send({
+              results,
+              pagination: {
+                totalRecords: totalCount,
+                pageSize: Number(pageSize),
+                totalPages,
+                currentPage: Number(page),
+                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+              },
+            });
+          }
+        });
+      }
+    }
+  );
+  // const query = "SELECT * from task_master";
+  // connection.query(query, (err, results) => {
+  //   return res.status(StatusCodes.OK).json(results);
+  // });
+};
+const GetModuleTasks = async (req, res) => {
+  const { module_id } = req.params;
+  console.log("module_id",module_id)
+  let {
+    search = "",
+    page = 1,
+    pageSize = 10,
+    sortBy = "module_name",
+    sortOrder = "ASC",
+  } = req.query;
+
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const paginatedQuery =
+    "SELECT * FROM task_master WHERE task_name LIKE ? AND module_id = ? LIMIT ? OFFSET ?";
+  connection.query(
+    paginatedQuery,
+    [`%${search}%`, module_id, Number(pageSize), offset],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
       } else {
@@ -83,7 +140,7 @@ const AddModuleTasks = async (req, res) => {
 };
 const EditModuleTask = async (req, res) => {
   const { task_id } = req.params;
-console.log("route accessed")
+  console.log("route accessed");
   const { module_id, task_name, allocated_time } = req.body;
 
   const query =
@@ -117,5 +174,6 @@ module.exports = {
   GetAllModuleTasks,
   AddModuleTasks,
   EditModuleTask,
+  GetModuleTasks,
   DeleteModuleTask,
 };
