@@ -87,7 +87,7 @@ router.get("/api/admin/getAllModule/", (req, res) => {
     (err, results) => {
       if (err) {
         console.log(err);
-        res 
+        res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
       } else {
@@ -122,42 +122,60 @@ router.get("/api/admin/getAllModule/", (req, res) => {
 });
 
 // Get Module for project
-router.get("/api/admin/getAllModule/:project_id", (req, res) => {
+router.get("/api/admin/getModule/:project_id", (req, res) => {
   const { project_id } = req.params;
-  console.log("project_id", project_id);
-  const query = `
-  SELECT 
-    mm.project_id,
-    pm.project_name,
-    CONCAT('[', COALESCE(
-        GROUP_CONCAT(CONCAT('{"module_id": ', mm.module_id, ', "item": "', mm.module_name, '"}') SEPARATOR ','), 
-        '[]'
-    ), ']') AS module_name
-FROM 
-    module_master as mm
-LEFT JOIN project_master as pm 
-ON pm.project_id = mm.project_id
-WHERE mm.project_id = ?
-GROUP BY 
-    project_id;
-`;
+  console.log("params", project_id);
+  let {
+    search,
+    page = 1,
+    pageSize = 10,
+    sortBy = "module_name",
+    sortOrder = "ASC",
+  } = req.query;
+  console.log("search term", search);
+  const offset = (Number(page) - 1) * Number(pageSize);
 
-  connection.query(query, [project_id], (err, results) => {
-    if (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while processing your request." });
-    } else {
-      const temp = results.map((item) => {
-        return {
-          ...item,
-          module_name: JSON.parse(item.module_name),
-        };
-      });
-      res.status(200).send(temp);
+  // Query to fetch paginated results
+  const paginatedQuery =
+    "SELECT * FROM module_master WHERE module_name LIKE ? AND project_id=? LIMIT ? OFFSET ?";
+  connection.query(
+    paginatedQuery,
+    [`%${search}%`, project_id, Number(pageSize), offset],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else {
+        // Query to fetch total count of records
+        const totalCountQuery =
+          "SELECT COUNT(*) AS totalRecords FROM module_master";
+        connection.query(totalCountQuery, (err, totalCountResult) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({
+              error: "An error occurred while processing your request.",
+            });
+          } else {
+            const totalCount = totalCountResult[0].totalRecords;
+            const totalPages = Math.ceil(totalCount / Number(pageSize));
+            res.status(200).send({
+              results,
+              pagination: {
+                totalRecords: totalCount,
+                pageSize: Number(pageSize),
+                totalPages,
+                currentPage: Number(page),
+                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+              },
+            });
+          }
+        });
+      }
     }
-  });
+  );
 });
 
 // Edit module
