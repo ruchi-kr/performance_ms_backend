@@ -137,7 +137,7 @@ router.get("/api/admin/getModule/:project_id", (req, res) => {
 
   // Query to fetch paginated results
   const paginatedQuery =
-    "SELECT * FROM module_master WHERE module_name LIKE ? AND project_id=? LIMIT ? OFFSET ?";
+    "SELECT * FROM module_master AS mm WHERE mm.module_name LIKE ? AND mm.project_id=? LIMIT ? OFFSET ?";
   connection.query(
     paginatedQuery,
     [`%${search}%`, project_id, Number(pageSize), offset],
