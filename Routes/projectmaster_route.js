@@ -76,6 +76,24 @@ router.get("/api/admin/getProjects", (req, res) => {
   }
 });
 
+router.get('/api/admin/getProjects/:project_id', async (req, res) => {
+  try {
+    const projectId = req.params.project_id;
+    const query = "SELECT * FROM project_master WHERE project_id=?";
+    connection.query(query, [projectId], (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+      } else {
+        res.status(200).json(results);
+      }
+    })
+  } catch (error) {
+    console.error("Error fetching project details:", error);
+    res.status(500).json({ error: "Error fetching project details" });
+  }
+});
+
 // Edit project
 router.post(
   "/api/admin/editProject/:project_id",
@@ -169,39 +187,39 @@ router.delete(
 //   });
 // });
 
-router.get("/api/getDashData", (req, res) => {
-  const queries = [
-    "SELECT COUNT(*) AS projectCount FROM project_master",
-    "SELECT COUNT(*) AS employeeCount FROM employee_master",
-    "SELECT COUNT(*) AS userCount FROM user_master",
-    "SELECT COUNT(*) AS reportingManagerCount FROM reporting_manager_master",
-  ];
+// router.get("/api/getDashData", (req, res) => {
+//   const queries = [
+//     "SELECT COUNT(*) AS projectCount FROM project_master",
+//     "SELECT COUNT(*) AS employeeCount FROM employee_master",
+//     "SELECT COUNT(*) AS userCount FROM user_master",
+//     "SELECT COUNT(*) AS reportingManagerCount FROM reporting_manager_master",
+//   ];
 
-  connection.query(queries, (error, results) => {
-    if (error) {
-      console.error("Error fetching data:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
+//   connection.query(queries, (error, results) => {
+//     if (error) {
+//       console.error("Error fetching data:", error);
+//       res.status(500).json({ error: "Internal Server Error" });
+//       return;
+//     }
 
-    const [
-      projectCountResult,
-      employeeCountResult,
-      userCountResult,
-      reportingManagerCountResult,
-    ] = results;
+//     const [
+//       projectCountResult,
+//       employeeCountResult,
+//       userCountResult,
+//       reportingManagerCountResult,
+//     ] = results;
 
-    const projectCount = projectCountResult[0].projectCount;
-    const employeeCount = employeeCountResult[0].employeeCount;
-    const userCount = userCountResult[0].userCount;
-    const reportingManagerCount =
-      reportingManagerCountResult[0].reportingManagerCount;
+//     const projectCount = projectCountResult[0].projectCount;
+//     const employeeCount = employeeCountResult[0].employeeCount;
+//     const userCount = userCountResult[0].userCount;
+//     const reportingManagerCount =
+//       reportingManagerCountResult[0].reportingManagerCount;
 
-    res
-      .status(200)
-      .json({ projectCount, employeeCount, userCount, reportingManagerCount });
-  });
-});
+//     res
+//       .status(200)
+//       .json({ projectCount, employeeCount, userCount, reportingManagerCount });
+//   });
+// });
 
 // to export to excel and pdf file
 router.get("/api/admin/getexcelpdfprojects", (req, res) => { 
