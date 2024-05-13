@@ -58,7 +58,7 @@ const GetAllModuleTasks = async (req, res) => {
 };
 const GetModuleTasks = async (req, res) => {
   const { module_id } = req.params;
-  console.log("module_id",module_id)
+  console.log("module_id", module_id);
   let {
     search = "",
     page = 1,
@@ -115,18 +115,19 @@ const GetModuleTasks = async (req, res) => {
 };
 
 const AddModuleTasks = async (req, res) => {
-  const { module_id, task_name, allocated_time } = req.body;
-  console.log("{ module_name, project_id, from_date, to_date, status }", {
+  const { module_id, task_name, allocated_time, stage } = req.body;
+  console.log("{ module_name, project_id, from_date, to_date, status,stage }", {
     module_id,
     task_name,
     allocated_time,
+    stage,
   });
 
   const query =
-    "INSERT INTO task_master ( module_id,task_name,allocated_time) VALUES (?,?,?)";
+    "INSERT INTO task_master ( module_id,task_name,allocated_time,stage) VALUES (?,?,?,?)";
   connection.query(
     query,
-    [module_id, task_name, allocated_time],
+    [module_id, task_name, allocated_time, stage],
     (err, results) => {
       if (err) {
         console.log(err);

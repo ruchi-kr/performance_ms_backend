@@ -7,13 +7,15 @@ const { StatusCodes } = require("http-status-codes");
 // API FOR Module Master CRUD
 // CREATE module
 router.post("/api/admin/addModule", (req, res) => {
-  const { module_name, project_id, from_date, to_date, status } = req.body;
-  console.log("{ module_name, project_id, from_date, to_date, status }", {
+  const { module_name, project_id, from_date, to_date, status, stage } =
+    req.body;
+  console.log("{ module_name, project_id, from_date, to_date, status,stage }", {
     module_name,
     project_id,
     from_date,
     to_date,
     status,
+    stage,
   });
   // const module_array = JSON.stringify(module_name.map((module) => module.item));
   // const module_array = JSON.stringify(
@@ -50,10 +52,10 @@ router.post("/api/admin/addModule", (req, res) => {
   //   );
   // });
   const query =
-    "INSERT INTO module_master ( module_name,to_date,from_date,project_id,status) VALUES (?,?,?,?,?)";
+    "INSERT INTO module_master ( module_name,to_date,from_date,project_id,status,stage) VALUES (?,?,?,?,?,?)";
   connection.query(
     query,
-    [module_name, to_date, from_date, project_id, status],
+    [module_name, to_date, from_date, project_id, status, stage],
     (err, results) => {
       if (err) {
         console.log(err);
