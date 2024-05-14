@@ -104,7 +104,7 @@ LEFT JOIN
 WHERE 
   m.project_id = ?
 GROUP BY 
-  m.module_id;`;
+  m.module_id`;
   connection.query(paginatedQuery, [project_id], (err, results) => {
     if (err) {
       console.log(err);
