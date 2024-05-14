@@ -80,7 +80,7 @@ router.get("/api/admin/getAllModule/:project_id", (req, res) => {
   console.log("search term", search);
   const { project_id } = req.params;
   const offset = (Number(page) - 1) * Number(pageSize);
-
+  console.log("search term", search);
   // Query to fetch paginated results
   const paginatedQuery = `SELECT 
   m.module_id,
@@ -94,7 +94,8 @@ router.get("/api/admin/getAllModule/:project_id", (req, res) => {
       JSON_OBJECT(
           'task_id', t.task_id,
           'task_name', t.task_name,
-          'allocated_time', t.allocated_time
+          'allocated_time', t.allocated_time,
+          'module_id',t.module_id
       )
   ), ']') AS tasks
 FROM 
@@ -103,48 +104,55 @@ LEFT JOIN
   task_master t ON m.module_id = t.module_id
 WHERE 
   m.project_id = ?
+AND
+  m.module_name LIKE ? 
 GROUP BY 
-  m.module_id`;
-  connection.query(paginatedQuery, [project_id], (err, results) => {
-    if (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while processing your request." });
-    } else {
-      // Query to fetch total count of records
-      const totalCountQuery =
-        "SELECT COUNT(*) AS totalRecords FROM module_master";
-      connection.query(totalCountQuery, (err, totalCountResult) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({
-            error: "An error occurred while processing your request.",
-          });
-        } else {
-          const totalCount = totalCountResult[0].totalRecords;
-          const totalPages = Math.ceil(totalCount / Number(pageSize));
-          const temp = results.map((module) => {
-            return {
-              ...module,
-              tasks: JSON.parse(module.tasks),
-            };
-          });
-          res.status(200).send({
-            data: temp,
-            pagination: {
-              totalRecords: totalCount,
-              pageSize: Number(pageSize),
-              totalPages,
-              currentPage: Number(page),
-              nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
-              prevPage: Number(page) > 1 ? Number(page) - 1 : null,
-            },
-          });
-        }
-      });
+  m.module_id
+`;
+  connection.query(
+    paginatedQuery,
+    [project_id, `%${search}%`, Number(pageSize), offset],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else {
+        // Query to fetch total count of records
+        const totalCountQuery =
+          "SELECT COUNT(*) AS totalRecords FROM module_master";
+        connection.query(totalCountQuery, (err, totalCountResult) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({
+              error: "An error occurred while processing your request.",
+            });
+          } else {
+            const totalCount = totalCountResult[0].totalRecords;
+            const totalPages = Math.ceil(totalCount / Number(pageSize));
+            const temp = results.map((module) => {
+              return {
+                ...module,
+                tasks: JSON.parse(module.tasks),
+              };
+            });
+            res.status(200).send({
+              data: temp,
+              pagination: {
+                totalRecords: totalCount,
+                pageSize: Number(pageSize),
+                totalPages,
+                currentPage: Number(page),
+                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+              },
+            });
+          }
+        });
+      }
     }
-  });
+  );
 });
 
 // Get Module for project

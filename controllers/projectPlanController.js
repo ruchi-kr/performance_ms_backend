@@ -22,6 +22,7 @@ const GetProjectPlan = async (req, res) => {
           'to_date', to_date,
           'from_date', from_date,
           'status', status,
+          'stage',stage,
           'tasks', tasks
       )
   SEPARATOR ', '), ']') AS modules
@@ -38,6 +39,7 @@ FROM (
           JSON_OBJECT(
               'task_id', t.task_id,
               'task_name', t.task_name,
+              'stage',t.stage,
               'allocated_time', t.allocated_time
           )
       SEPARATOR ', '), ']') AS tasks
@@ -46,7 +48,7 @@ FROM (
   LEFT JOIN 
       task_master t ON m.module_id = t.module_id
   WHERE 
-      m.project_id = 9 -- Replace ? with the actual project ID
+      m.project_id = ?
   GROUP BY 
       m.module_id
 ) AS subquery
