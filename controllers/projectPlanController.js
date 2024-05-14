@@ -51,7 +51,7 @@ FROM (
       m.module_id
 ) AS subquery
 GROUP BY 
-  stage;`;
+  stage`;
 
   let projectDetails = [];
   const projectQuery = "SELECT * FROM project_master WHERE project_id=?";
