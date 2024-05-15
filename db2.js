@@ -1,0 +1,23 @@
+// db.js
+
+const mysql = require("mysql2/promise");
+
+// Create MySQL connection pool
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "performancems",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+
+  maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+});
+
+// Exporting the pool so it can be used in other parts of the application
+module.exports = pool;

@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
+const asyncConnection = require("../db2");
 
 const GetProjectPlan = async (req, res) => {
   let {
@@ -12,6 +13,7 @@ const GetProjectPlan = async (req, res) => {
   const { project_id } = req.params;
   console.log("projetc_id", project_id);
   const offset = (Number(page) - 1) * Number(pageSize);
+  let projectDetails = [];
   const paginatedQuery = `SELECT 
   stage,
   CONCAT('[', GROUP_CONCAT(
@@ -55,7 +57,6 @@ FROM (
 GROUP BY 
   stage`;
 
-  let projectDetails = [];
   const projectQuery = "SELECT * FROM project_master WHERE project_id=?";
   try {
     connection.query(projectQuery, [project_id], (err, results) => {
@@ -111,9 +112,13 @@ GROUP BY
   });
 };
 const GetLatestProjectPlan = async (req, res) => {
-  res
-    .status(StatusCodes.OK)
-    .json({ msg: "get latest PROjectplan ie last plan added" });
+  console.log("latest project plan route");
+  const [results,fields] = await asyncConnection.query(
+    "SELECT * FROM project_master LIMIT 10"
+  );
+  console.log("results",results)
+  console.log("fields",fields)
+  res.status(StatusCodes.OK).json(results);
 };
 const AddProjectPlan = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "aDD PROjectplan" });

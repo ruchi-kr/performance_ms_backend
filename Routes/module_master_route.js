@@ -106,53 +106,84 @@ WHERE
   m.project_id = ?
 AND
   m.module_name LIKE ? 
+AND 
+  m.stage LIKE ?
 GROUP BY 
   m.module_id
 `;
-  connection.query(
-    paginatedQuery,
-    [project_id, `%${search}%`, Number(pageSize), offset],
-    (err, results) => {
-      if (err) {
-        console.log(err);
-        res
-          .status(500)
-          .json({ error: "An error occurred while processing your request." });
-      } else {
-        // Query to fetch total count of records
-        const totalCountQuery =
-          "SELECT COUNT(*) AS totalRecords FROM module_master";
-        connection.query(totalCountQuery, (err, totalCountResult) => {
-          if (err) {
-            console.log(err);
-            res.status(500).json({
-              error: "An error occurred while processing your request.",
-            });
-          } else {
-            const totalCount = totalCountResult[0].totalRecords;
-            const totalPages = Math.ceil(totalCount / Number(pageSize));
-            const temp = results.map((module) => {
-              return {
-                ...module,
-                tasks: JSON.parse(module.tasks),
-              };
-            });
-            res.status(200).send({
-              data: temp,
-              pagination: {
-                totalRecords: totalCount,
-                pageSize: Number(pageSize),
-                totalPages,
-                currentPage: Number(page),
-                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
-                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
-              },
-            });
+  let projectStage = "";
+  try {
+    connection.query(
+      "SELECT * FROM project_master where project_id = ?",
+      project_id,
+      (error, results) => {
+        if (error) console.log(error);
+        results = JSON.parse(JSON.stringify(results));
+        console.log(results[0]);
+        projectStage = results[0].stage;
+        console.log("project stage", projectStage);
+
+        connection.query(
+          paginatedQuery,
+          [
+            project_id,
+            `%${search}%`,
+            projectStage,
+            Number(pageSize),
+            offset,
+          ],
+          (err, results) => {
+            if (err) {
+              console.log(err);
+              res
+                .status(500)
+                .json({
+                  error: "An error occurred while processing your request.",
+                });
+            } else {
+              // Query to fetch total count of records
+              const totalCountQuery =
+                "SELECT COUNT(*) AS totalRecords FROM module_master";
+              connection.query(totalCountQuery, (err, totalCountResult) => {
+                if (err) {
+                  console.log(err);
+                  res.status(500).json({
+                    error: "An error occurred while processing your request.",
+                  });
+                } else {
+                  const totalCount = totalCountResult[0].totalRecords;
+                  const totalPages = Math.ceil(totalCount / Number(pageSize));
+                  const temp = results.map((module) => {
+                    return {
+                      ...module,
+                      tasks: JSON.parse(module.tasks),
+                    };
+                  });
+                  res.status(200).send({
+                    data: temp,
+                    pagination: {
+                      totalRecords: totalCount,
+                      pageSize: Number(pageSize),
+                      totalPages,
+                      currentPage: Number(page),
+                      nextPage:
+                        Number(page) < totalPages ? Number(page) + 1 : null,
+                      prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+                    },
+                  });
+                }
+              });
+            }
           }
-        });
+        );
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "Internal server error" });
+  }
 });
 
 // Get Module for project

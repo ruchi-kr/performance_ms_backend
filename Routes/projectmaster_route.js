@@ -3,24 +3,28 @@ const router = express.Router();
 const mysql = require("mysql");
 const protectedRoute = require("../middleware/protectedResource");
 const connection = require("../db");
-
+const asyncConnection = require("../db2");
+const { StatusCodes } = require("http-status-codes");
 // API FOR PROJECT CRUD
 
 // CREATE project
 router.post("/api/admin/addProject", protectedRoute, (req, res) => {
-  const { project_name, schedule_start_date, schedule_end_date,stage} = req.body;
+  const { project_name, schedule_start_date, schedule_end_date, stage } =
+    req.body;
   const query =
     "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
   connection.query(
     query,
-    [project_name, schedule_start_date, schedule_end_date,stage],
+    [project_name, schedule_start_date, schedule_end_date, stage],
     (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).send("Project Added Successfully");
-      } 
+      }
     }
   );
 });
@@ -50,11 +54,12 @@ router.get("/api/admin/getallProject", (req, res) => {
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while processing your request.' });
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       res.status(200).json(results);
     }
-    
   });
 });
 // without pagination
@@ -66,7 +71,9 @@ router.get("/api/admin/getProjects", (req, res) => {
     connection.query(query, (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).json(results);
       }
@@ -76,18 +83,20 @@ router.get("/api/admin/getProjects", (req, res) => {
   }
 });
 
-router.get('/api/admin/getProjects/:project_id', async (req, res) => {
+router.get("/api/admin/getProjects/:project_id", async (req, res) => {
   try {
     const projectId = req.params.project_id;
     const query = "SELECT * FROM project_master WHERE project_id=?";
     connection.query(query, [projectId], (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).json(results);
       }
-    })
+    });
   } catch (error) {
     console.error("Error fetching project details:", error);
     res.status(500).json({ error: "Error fetching project details" });
@@ -98,64 +107,135 @@ router.get('/api/admin/getProjects/:project_id', async (req, res) => {
 router.post(
   "/api/admin/editProject/:project_id",
   protectedRoute,
-  (req, res) => {
-    const projectId = req.params.project_id;
-
-    if (!projectId) {
-      return res.status(400).send("Project ID is required");
-    }
-
-    const fetchQuery = "SELECT * FROM project_master WHERE project_id=?";
+  async (req, res) => {
+    const { project_id } = req.params;
+    const {
+      project_name,
+      schedule_start_date,
+      schedule_end_date,
+      stage,
+      module_id,
+    } = req.body;
     const updateQuery =
       "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
 
-    // Fetch project by ID
-    connection.query(fetchQuery, [projectId], (fetchErr, fetchResults) => {
-      if (fetchErr) {
-        return res.status(500).send("Error fetching project data");
+    const [projectDetails] = await asyncConnection.query(
+      "SELECT * FROM project_master WHERE project_id = ?",
+      project_id
+    );
+    let newConnection;
+    const projectStage = projectDetails[0].stage;
+
+    try {
+      newConnection = await asyncConnection.getConnection();
+
+      // Begin transaction
+      await newConnection.beginTransaction();
+
+      if (projectStage === "rfp" && stage === "won") {
+        console.log("replicating data from rfp ----> won");
+        //check if transition happened already
+
+        const [oldModules] = await asyncConnection.query(
+          "SELECT * from module_master WHERE project_id = ? AND stage NOT LIKE 'scrapped'",
+          project_id
+        );
+        console.log("old modules", oldModules);
+
+        await duplicateModuleAndTasksRfpToWon(newConnection, project_id, "won");
+      } else if (projectStage === "won" && stage === "inprocess") {
+        console.log("replicating data from won ----> inprocess");
+        await duplicateModuleAndTasksWonToInprocess(
+          newConnection,
+          project_id,
+          "inprocess"
+        );
       }
+      await newConnection.query(updateQuery, [
+        project_name,
+        schedule_start_date,
+        schedule_end_date,
+        stage,
+        module_id,
+        project_id,
+      ]);
+      // Commit transaction
+      await newConnection.commit();
 
-      if (fetchResults.length === 0) {
-        return res.status(404).send("Project not found");
+      return res
+        .status(StatusCodes.OK)
+        .json({ msg: "record modified successfully!" });
+    } catch (error) {
+      console.error("Error changing stage:", error);
+      if (newConnection) {
+        await newConnection.rollback();
       }
-
-      const existingProject = fetchResults[0];
-      const { project_name, schedule_start_date, schedule_end_date,stage,module_id } = req.body;
-
-      // Update project data
-      connection.query(
-        updateQuery,
-        [project_name, schedule_start_date, schedule_end_date, stage,module_id,projectId],
-        (updateErr, updateResults) => {
-          if (updateErr) {
-            return res.status(500).send("Error updating project");
-          }
-
-          // Fetch updated project data
-          connection.query(
-            fetchQuery,
-            [projectId],
-            (fetchUpdatedErr, fetchUpdatedResults) => {
-              if (fetchUpdatedErr) {
-                return res
-                  .status(500)
-                  .send("Error fetching updated project data");
-              }
-
-              const updatedProject = fetchUpdatedResults[0];
-              if (updatedProject) {
-                res.status(200).json(updatedProject); // Return updated project data
-              } else {
-                res.status(500).send("Failed to fetch updated project data"); // Handle case where updated project data is not found
-              }
-            }
-          );
-        }
-      );
-    });
+      res.status(500).json({ error: "Internal server error." });
+    } finally {
+      if (newConnection) {
+        newConnection.release();
+      }
+    }
   }
 );
 
+// Edit project old
+// router.post(
+//   "/api/admin/editProject/:project_id",
+//   protectedRoute,
+//   (req, res) => {
+//     const projectId = req.params.project_id;
+
+//     const fetchQuery = "SELECT * FROM project_master WHERE project_id=?";
+//     const updateQuery =
+//       "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
+
+//     // Fetch project by ID
+//     connection.query(fetchQuery, [projectId], (fetchErr, fetchResults) => {
+//       if (fetchErr) {
+//         return res.status(500).send("Error fetching project data");
+//       }
+
+//       if (fetchResults.length === 0) {
+//         return res.status(404).send("Project not found");
+//       }
+
+//       const existingProject = fetchResults[0];
+//       const { project_name, schedule_start_date, schedule_end_date,stage,module_id } = req.body;
+
+//       // Update project data
+//       connection.query(
+//         updateQuery,
+//         [project_name, schedule_start_date, schedule_end_date, stage,module_id,projectId],
+//         (updateErr, updateResults) => {
+//           if (updateErr) {
+//             return res.status(500).send("Error updating project");
+//           }
+
+//           // Fetch updated project data
+//           connection.query(
+//             fetchQuery,
+//             [projectId],
+//             (fetchUpdatedErr, fetchUpdatedResults) => {
+//               if (fetchUpdatedErr) {
+//                 return res
+//                   .status(500)
+//                   .send("Error fetching updated project data");
+//               }
+
+//               const updatedProject = fetchUpdatedResults[0];
+//               if (updatedProject) {
+//                 res.status(200).json(updatedProject); // Return updated project data
+//               } else {
+//                 res.status(500).send("Failed to fetch updated project data"); // Handle case where updated project data is not found
+//               }
+//             }
+//           );
+//         }
+//       );
+//     });
+//   }
+// );
 // DELETE project
 router.delete(
   "/api/admin/deleteProject/:project_id",
@@ -166,10 +246,12 @@ router.delete(
     connection.query(query, [ProjectId], (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).send("Project deleted successfully");
-      }     
+      }
     });
   }
 );
@@ -222,21 +304,144 @@ router.delete(
 // });
 
 // to export to excel and pdf file
-router.get("/api/admin/getexcelpdfprojects", (req, res) => { 
+router.get("/api/admin/getexcelpdfprojects", (req, res) => {
   try {
-    const query = 'SELECT * FROM project_master';
+    const query = "SELECT * FROM project_master";
     connection.query(query, (err, results) => {
       if (err) {
         console.log(err);
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).json(results);
       }
-    
     });
   } catch (error) {
     console.log(error);
   }
 });
+
+// Function to duplicate module and task data rfp to won
+async function duplicateModuleAndTasksRfpToWon(
+  newConnection,
+  project_id,
+  newStage
+) {
+  try {
+    // Fetch all modules associated with the project and stage not like 'scrapped', with row-level locking
+    const [modules] = await newConnection.query(
+      `
+     SELECT module_id, module_name, from_date, to_date,status                                                
+     FROM module_master
+     WHERE project_id = ? AND status NOT LIKE 'scrapped' AND stage LIKE 'rfp' 
+     FOR UPDATE;
+   `,
+      [project_id]
+    );
+    console.log("modules from rfp->won", modules);
+    for (const module of modules) {
+      // Insert new module
+      const [result] = await newConnection.query(
+        `
+      INSERT INTO module_master (project_id, module_name, from_date, to_date, stage,status)
+      VALUES (?, ?, ?, ?, ?,?);
+    `,
+        [
+          project_id,
+          module.module_name,
+          module.from_date,
+          module.to_date,
+          newStage,
+          module.status,
+        ]
+      );
+
+      // Get the ID of the newly inserted module
+      const newModuleId = result.insertId;
+      console.log("insert_id", newModuleId);
+
+      // Replicate tasks for the newly inserted module with row-level locking
+      await newConnection.query(
+        `
+      INSERT INTO task_master (module_id, task_name,allocated_time,stage)
+      SELECT ? AS module_id, task_name,allocated_time,?
+      FROM task_master
+      WHERE module_id = ?
+      FOR UPDATE;
+    `,
+        [newModuleId, newStage, module.module_id]
+      );
+
+      console.log("Data duplicated successfully.");
+    }
+  } catch (error) {
+    console.error("Error duplicating module and task data:", error);
+    // Rollback transaction on error
+    await newConnection.rollback();
+    throw error;
+  }
+}
+// Function to duplicate module and task data won to inprocess
+async function duplicateModuleAndTasksWonToInprocess(
+  newConnection,
+  project_id,
+  newStage
+) {
+  try {
+    // Fetch all modules associated with the project and stage not like 'scrapped', with row-level locking
+    const [modules] = await newConnection.query(
+      `
+     SELECT module_id, module_name, from_date, to_date,status
+     FROM module_master
+     WHERE project_id = ? AND status NOT LIKE 'scrapped' AND stage LIKE 'won'
+     FOR UPDATE;
+   `,
+      [project_id]
+    );
+    console.log("modules--->", modules);
+
+    for (const module of modules) {
+      // Insert new module
+      const [result] = await newConnection.query(
+        `
+      INSERT INTO module_master (project_id, module_name, from_date, to_date, stage,status)
+      VALUES (?, ?, ?, ?, ?,?);
+    `,
+        [
+          project_id,
+          module.module_name,
+          module.from_date,
+          module.to_date,
+          newStage,
+          module.status,
+        ]
+      );
+
+      // Get the ID of the newly inserted module
+      const newModuleId = result.insertId;
+      console.log("insert_id", newModuleId);
+
+      // Replicate tasks for the newly inserted module with row-level locking
+      await newConnection.query(
+        `
+      INSERT INTO task_master (module_id, task_name,allocated_time,stage)
+      SELECT ? AS module_id, task_name,allocated_time,?
+      FROM task_master
+      WHERE module_id = ?
+      FOR UPDATE;
+    `,
+        [newModuleId, newStage, module.module_id]
+      );
+
+      console.log("Data duplicated successfully.");
+    }
+  } catch (error) {
+    console.error("Error duplicating module and task data:", error);
+    // Rollback transaction on error
+    await newConnection.rollback();
+    throw error;
+  }
+}
 
 module.exports = router;
