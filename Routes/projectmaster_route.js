@@ -244,11 +244,13 @@ router.delete(
     const ProjectId = req.params.project_id;
     const query = "DELETE FROM project_master WHERE project_id=?";
     connection.query(query, [ProjectId], (err, results) => {
+      console.log("delete project results",results);
       if (err) {
         console.log(err);
-        res
-          .status(500)
-          .json({ error: "An error occurred while processing your request." });
+        if(err.errno === 1451){
+          return res.status(500).json({ error: 'First delete modules of this project' });
+        }
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
       } else {
         res.status(200).send("Project deleted successfully");
       }
