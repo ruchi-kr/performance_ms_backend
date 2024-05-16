@@ -109,7 +109,8 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
     return res.status(400).send("Employee ID is required");
   }
 
-  const fetchQuery = "SELECT * FROM employee_master WHERE employee_id=?";
+  const fetchQuery = "SELECT * FROM employee_master WHERE employee_id = ?";
+ 
   const updateQuery =
     "UPDATE employee_master SET name=?, manager_id=?, designation_id=?, doj=?, dob=?, job_id=?, experience=?, skills=?, mobile_no=?, email=? WHERE employee_id=?";
 
@@ -202,7 +203,24 @@ router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
 
 // get list of all employee
 router.get("/api/admin/getEmployeesList", (req, res) => {
-  const query = "SELECT * FROM employee_master";
+  const query = "SELECT * FROM employee_master ";
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    } else {
+      return res.status(200).json(results);
+    }
+  });
+});
+
+// for creating credentials employee list
+router.get("/api/admin/EmployeesList", (req, res) => {
+  const query = `SELECT em.*
+  FROM employee_master em
+  LEFT JOIN user_master um ON em.employee_id = um.employee_id
+  WHERE um.employee_id IS NULL`;
 
   connection.query(query, (err, results) => {
     if (err) {
