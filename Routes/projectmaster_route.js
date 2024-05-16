@@ -74,7 +74,7 @@ router.get("/api/admin/getallProject", (req, res) => {
       } else {
         projects=results;
         connection.query(
-          "SELECT COUNT(*) AS total FROM project_master ",
+          "SELECT COUNT(*) AS total FROM project_master WHERE project_name LIKE ? ",
           [`${name}`],
           (err, results) => {
             if (err) console.log(err);
