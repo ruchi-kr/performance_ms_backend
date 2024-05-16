@@ -89,13 +89,13 @@ router.get("/api/admin/getUsers", (req, res) => {
     } else {
       users = results;
       connection.query(
-        "SELECT COUNT(*) AS total FROM user_master ",
+        `SELECT COUNT(*) AS total FROM user_master WHERE username LIKE '%${name}%'`,
         [`${name}`],
         (err, results) => {
           if (err) console.log(err);
 
           results = JSON.parse(JSON.stringify(results));
-          totalCount = results[0].total;
+          totalCount = Number(results[0].total);
           totalPages = Math.ceil(totalCount / pageSize);
 
           res.status(200).json({

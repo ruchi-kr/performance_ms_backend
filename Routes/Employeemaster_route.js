@@ -87,13 +87,15 @@ router.get("/api/admin/getEmployees", (req, res) => {
     } else {
       employees = results;
       connection.query(
-        "SELECT COUNT(*) AS total FROM employee_master ",
-        [`${name}`],
+        `SELECT COUNT(*) AS total 
+ FROM employee_master AS em 
+ WHERE em.name LIKE ?;`,
+        [`%${name}%`],
         (err, results) => {
           if (err) console.log(err);
 
           results = JSON.parse(JSON.stringify(results));
-          totalCount = results[0].total;
+          totalCount = Number(results[0].total);
           totalPages = Math.ceil(totalCount / pageSize);
 
           res.status(200).json({

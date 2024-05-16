@@ -44,13 +44,13 @@ router.get("/api/admin/getAllDesignation", (req, res) => {
     } else {
       designation = results;
       connection.query(
-        "SELECT COUNT(*) AS total FROM designation_master ",
+        `SELECT COUNT(*) OVER() AS total FROM designation_master WHERE designation_name LIKE '%${name}%';`,
         [`${name}`],
         (err, results) => {
           if (err) console.log(err);
 
           results = JSON.parse(JSON.stringify(results));
-          totalCount = results[0].total;
+          totalCount = Number(results[0].total);
           totalPages = Math.ceil(totalCount / pageSize);
 
           res.status(200).json({

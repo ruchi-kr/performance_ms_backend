@@ -24,11 +24,9 @@ router.post("/api/admin/addJobRole", (req, res) => {
       connection.query(insertQuery, [job_role_name], (err, results) => {
         if (err) {
           console.log(err);
-          return res
-            .status(500)
-            .json({
-              error: "An error occurred while processing your request.",
-            });
+          return res.status(500).json({
+            error: "An error occurred while processing your request.",
+          });
         } else {
           return res.status(StatusCodes.OK).send("job role Added Successfully");
         }
@@ -60,7 +58,7 @@ router.get("/api/admin/getAllJobRole", (req, res) => {
     } else {
       jobRoleData = results;
       connection.query(
-        "SELECT COUNT(*) AS total FROM job_role_master ",
+        `SELECT COUNT(*) AS total FROM job_role_master WHERE job_role_name LIKE '%${name}%';`,
         [`${name}`],
         (err, results) => {
           if (err) console.log(err);
@@ -158,11 +156,9 @@ router.delete("/api/admin/deleteJobRole/:job_id", (req, res) => {
     if (checkErr) throw checkErr;
 
     if (checkResults[0].count > 0) {
-      return res
-        .status(400)
-        .send({
-          error: "job role cannot be deleted as it is assigned to an employee",
-        });
+      return res.status(400).send({
+        error: "job role cannot be deleted as it is assigned to an employee",
+      });
     } else {
       const deleteQuery = "DELETE FROM job_role_master WHERE job_id = ?";
       connection.query(deleteQuery, [JobRoleId], (deleteErr, deleteResults) => {
