@@ -359,26 +359,17 @@ router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
   // Check if the module is assigned to any employee
   const deleteQuery = "DELETE FROM module_master WHERE module_id = ?";
   connection.query(deleteQuery, [module_id], (deleteErr, deleteResults) => {
-    if (deleteErr) console.log(deleteErr);
+    if (deleteErr){
+      console.log(deleteErr);
+      if(deleteErr.errno === 1451){
+        res.status(500).json({ msg: "First delete the tasks associated with this module." });
+      }
+      res.status(500).json({ msg: "Error while deleting module" });
+    } 
+   
     res.status(200).json({ msg: "Module Deleted Successfully" });
   });
 });
 
-// // get list of all designation
-// router.get('/api/admin/getDesignationList', (req, res) => {
-
-//     const query = 'SELECT * FROM designation_master';
-//     // const query ='SELECT rmm.*,em.name as manager_name FROM `reporting_manager_master` as rmm LEFT JOIN employee_master as em On rmm.employee_id = em.employee_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
-
-//     connection.query(query, (err, results) => {
-//         if (err) {
-//             console.log(err);
-//             res.status(500).json({ error: 'An error occurred while processing your request.' });
-//           } else {
-//             res.status(200).send(results);
-//           }
-
-//     })
-// })
 
 module.exports = router;

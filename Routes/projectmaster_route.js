@@ -11,6 +11,11 @@ const { StatusCodes } = require("http-status-codes");
 router.post("/api/admin/addProject", protectedRoute, (req, res) => {
   const { project_name, schedule_start_date, schedule_end_date, stage } =
     req.body;
+
+    // Check if schedule_end_date is greater than schedule_start_date
+  if (schedule_end_date <= schedule_start_date) {
+    return res.status(400).json({ error: "End date should be greater than start date." });
+  }
   const query =
     "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
   connection.query(
