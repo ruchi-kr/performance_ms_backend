@@ -122,7 +122,7 @@ GROUP BY
         
         results = JSON.parse(JSON.stringify(results));
         console.log(results[0]);
-        projectStage = results[0].stage;
+        projectStage = results[0]?.stage;
         console.log("project stage", projectStage);
 
         connection.query(
