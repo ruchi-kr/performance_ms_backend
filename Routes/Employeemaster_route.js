@@ -58,31 +58,57 @@ router.post("/api/admin/addEmployee", (req, res) => {
   });
 });
 
-
 // GET
 router.get("/api/admin/getEmployees", (req, res) => {
-  const { page, pageSize, name = "", email = "" } = req.query;
+  const {
+    page = 1,
+    pageSize = 10,
+    name = "",
+    email = "",
+    sortBy = "name",
+    sortOrder = "ASC",
+  } = req.query;
 
-  // Validate page and pageSize  , email=""
-  // Validate page and pageSize  , email=""
-  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-    return res.status(400).send("Invalid page or pageSize");
-  }
+  const offset = Number((page - 1) * pageSize);
 
-  const offset = (parseInt(page) - 1) * parseInt(pageSize);
   // const query = `SELECT * FROM project_master WHERE project_name LIKE '%${name}%' OR email LIKE '%${email}%' OR designation LIKE '%${designation}%' LIMIT ? OFFSET ?`;
   // const query = 'SELECT * FROM employee_master';
   // const query ='SELECT em.*,rmm.name as reporting_name FROM `employee_master` as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
-  const query = `SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%' LIMIT ? OFFSET ?`;
+  const query = `SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%' ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
   // OR u.email LIKE '%${email}%'
   // OR u.email LIKE '%${email}%'
-  connection.query(query, [parseInt(pageSize), offset], (err, results) => {
+  connection.query(query, [Number(pageSize), offset], (err, results) => {
     // if (err) throw err;
     if (err) {
       console.log(err);
-      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
-    return res.status(200).json(results);
+      employees = results;
+      connection.query(
+        "SELECT COUNT(*) AS total FROM employee_master ",
+        [`${name}`],
+        (err, results) => {
+          if (err) console.log(err);
+
+          results = JSON.parse(JSON.stringify(results));
+          totalCount = results[0].total;
+          totalPages = Math.ceil(totalCount / pageSize);
+
+          res.status(200).json({
+            data: employees,
+            pagination: {
+              totalRecords: totalCount,
+              pageSize: Number(pageSize),
+              totalPages,
+              currentPage: Number(page),
+              nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+              prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+            },
+          });
+        }
+      );
     }
   });
 });
@@ -93,11 +119,12 @@ router.get("/api/admin/getEmployeeslist", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       return res.status(200).json(results);
     }
-        
   });
 });
 
@@ -110,7 +137,7 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
   }
 
   const fetchQuery = "SELECT * FROM employee_master WHERE employee_id = ?";
- 
+
   const updateQuery =
     "UPDATE employee_master SET name=?, manager_id=?, designation_id=?, doj=?, dob=?, job_id=?, experience=?, skills=?, mobile_no=?, email=? WHERE employee_id=?";
 
@@ -175,7 +202,9 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
             if (updatedEmployee) {
               return res.status(200).json(updatedEmployee); // Return updated project data
             } else {
-              return res.status(500).send("Failed to fetch updated employee data"); // Handle case where updated project data is not found
+              return res
+                .status(500)
+                .send("Failed to fetch updated employee data"); // Handle case where updated project data is not found
             }
           }
         );
@@ -191,7 +220,9 @@ router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
     connection.query(query, [EmployeeId], (err, results) => {
       if (err) {
         console.log(err);
-        return res.status(500).json({ error: 'An error occurred while processing your request.' });
+        return res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         return res.status(200).send("employee deleted successfully");
       }
@@ -208,7 +239,9 @@ router.get("/api/admin/getEmployeesList", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       return res.status(200).json(results);
     }
@@ -225,7 +258,9 @@ router.get("/api/admin/EmployeesList", (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({ error: 'An error occurred while processing your request.' });
+      return res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
     } else {
       return res.status(200).json(results);
     }
