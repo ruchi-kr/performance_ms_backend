@@ -23,6 +23,7 @@ router.post("/api/user/addTask", (req, res) => {
     end_time,
     status,
     remarks,
+    task_id,
     adhoc,
   } = req.body;
   let actual_end_date = null;
@@ -30,7 +31,7 @@ router.post("/api/user/addTask", (req, res) => {
     actual_end_date = moment.utc().format();
   }
   const query =
-    "INSERT INTO employee ( project_id,module_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc ) VALUES (?,?,?,?, ?, ?,?,?,?,?,?,?,?)";
+    "INSERT INTO employee ( project_id,module_id,employee_id,manager_id,user_id, task,allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc,task_id ) VALUES (?,?,?,?,?, ?, ?,?,?,?,?,?,?,?)";
   connection.query(
     query,
     [
@@ -47,6 +48,7 @@ router.post("/api/user/addTask", (req, res) => {
       remarks,
       actual_end_date,
       adhoc,
+      task_id,
     ],
     (err, results) => {
       if (err) {
@@ -97,6 +99,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
     employee_id,
     manager_id,
     end_time,
+    task_id,
   } = req.body;
   let actual_end_date = null;
   if (status === "completed") {
@@ -104,7 +107,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
   }
 
   const query =
-    "UPDATE employee SET project_id = ?,module_id=?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=? WHERE id = ?";
+    "UPDATE employee SET project_id = ?,module_id=?,user_id=?, task = ?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=?,task_id=? WHERE id = ?";
   connection.query(
     query,
     [
@@ -120,6 +123,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
       status,
       remarks,
       actual_end_date,
+      task_id,
       taskId,
     ],
     (err, results) => {

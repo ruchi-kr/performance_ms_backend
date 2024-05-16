@@ -118,6 +118,8 @@ GROUP BY
       project_id,
       (error, results) => {
         if (error) console.log(error);
+
+        
         results = JSON.parse(JSON.stringify(results));
         console.log(results[0]);
         projectStage = results[0].stage;
