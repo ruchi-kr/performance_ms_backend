@@ -12,9 +12,11 @@ router.post("/api/admin/addProject", protectedRoute, (req, res) => {
   const { project_name, schedule_start_date, schedule_end_date, stage } =
     req.body;
 
-    // Check if schedule_end_date is greater than schedule_start_date
+  // Check if schedule_end_date is greater than schedule_start_date
   if (schedule_end_date <= schedule_start_date) {
-    return res.status(400).json({ error: "End date should be greater than start date." });
+    return res
+      .status(400)
+      .json({ error: "End date should be greater than start date." });
   }
   const query =
     "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
@@ -47,25 +49,56 @@ router.post("/api/admin/addProject", protectedRoute, (req, res) => {
 // Get project
 // with pagination
 router.get("/api/admin/getallProject", (req, res) => {
-  const { page, pageSize, name = "" } = req.query;
+  const {
+    page = 1,
+    pageSize = 10,
+    name = "",
+    sortBy = "project_name",
+    sortOrder = "ASC",
+  } = req.query;
 
-  // Validate page and pageSize
-  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-    return res.status(400).send("Invalid page or pageSize");
-  }
+  const offset = Number((page - 1) * pageSize);
+  const query = `SELECT * FROM project_master WHERE project_name LIKE ?  ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+  let totalCount = 0;
+  let totalPages = 0;
+  let projects;
+  connection.query(
+    query,
+    [`%${name}%`, Number(pageSize), offset],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        return res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else {
+        projects=results;
+        connection.query(
+          "SELECT COUNT(*) AS total FROM project_master ",
+          [`${name}`],
+          (err, results) => {
+            if (err) console.log(err);
 
-  const offset = (parseInt(page) - 1) * parseInt(pageSize);
-  const query = `SELECT * FROM project_master WHERE project_name LIKE '%${name}%' LIMIT ? OFFSET ?`;
-  connection.query(query, [parseInt(pageSize), offset], (err, results) => {
-    if (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while processing your request." });
-    } else {
-      res.status(200).json(results);
+            results = JSON.parse(JSON.stringify(results));
+            totalCount = results[0].total;
+            totalPages = Math.ceil(totalCount / pageSize);
+
+            res.status(200).json({
+              data: projects,
+              pagination: {
+                totalRecords: totalCount,
+                pageSize: Number(pageSize),
+                totalPages,
+                currentPage: Number(page),
+                nextPage: Number(page) < totalPages ? Number(page) + 1 : null,
+                prevPage: Number(page) > 1 ? Number(page) - 1 : null,
+              },
+            });
+          }
+        );
+      }
     }
-  });
+  );
 });
 // without pagination
 router.get("/api/admin/getProjects", (req, res) => {
@@ -249,13 +282,17 @@ router.delete(
     const ProjectId = req.params.project_id;
     const query = "DELETE FROM project_master WHERE project_id=?";
     connection.query(query, [ProjectId], (err, results) => {
-      console.log("delete project results",results);
+      console.log("delete project results", results);
       if (err) {
         console.log(err);
-        if(err.errno === 1451){
-          return res.status(500).json({ error: 'First delete modules of this project' });
+        if (err.errno === 1451) {
+          return res
+            .status(500)
+            .json({ error: "First delete modules of this project" });
         }
-        res.status(500).json({ error: 'An error occurred while processing your request.' });
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
       } else {
         res.status(200).send("Project deleted successfully");
       }
