@@ -24,7 +24,7 @@ const ViewProjectReport = (req, res) => {
   ) {
     console.log("running default date range");
     altQuery = `SELECT e.employee_id,e.manager_id,e.project_id,e.actual_time,e.allocated_time,e.status,SUM(allocated_time) AS total_allocated_time, SUM(actual_time) AS total_actual_time,em.name,pm.project_name,pm.schedule_start_date,schedule_end_date FROM employee AS e LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN project_master AS pm ON e.project_id = pm.project_id WHERE e.project_id=? AND e.employee_id=? AND e.manager_id=? 
-    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY)`;
+    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY)`;
   } else {
     console.log("Running specific date range query");
     altQuery = `SELECT e.employee_id,e.manager_id,e.project_id,e.actual_time,e.allocated_time,e.status,SUM(allocated_time) AS total_allocated_time, SUM(actual_time) AS total_actual_time,em.name,pm.project_name,pm.schedule_start_date,schedule_end_date FROM employee AS e LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN project_master AS pm ON e.project_id = pm.project_id WHERE e.project_id=? AND e.employee_id=? AND e.manager_id=? 

@@ -5,7 +5,7 @@ const ViewProjectReport = (req, res) => {
   const { reporting_manager_id } = req.params;
   const { toDate, fromDate, search, page = 1, pageSize = 10 } = req.query;
   
-  console.log("Search terms manager id", search,reporting_manager_id);
+  console.log("Search terms manager id------ yahan hun", search,reporting_manager_id);
   console.log("page", page, "---pageSize:", pageSize);
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   let altQuery = "";
@@ -28,7 +28,8 @@ const ViewProjectReport = (req, res) => {
                 '{', 
                 '"task_id":', e.id, 
                 ', "task":"', tm.task_name, 
-                '", "allocated_time":', e.allocated_time,  
+                '", "task_percent":', e.task_percent,  
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
@@ -49,7 +50,7 @@ LEFT JOIN
     task_master AS tm ON tm.task_id = e.task_id
 WHERE 
     e.manager_id = ?
-    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY) 
+    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY) 
     AND
     (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
 GROUP BY 
@@ -71,7 +72,8 @@ GROUP BY
                 '{', 
                 '"task_id":', e.id, 
                 ', "task":"', tm.task_name, 
-                '", "allocated_time":', e.allocated_time,  
+                '", "task_percent":', e.task_percent,  
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
