@@ -4,6 +4,7 @@ const connection = require("../db");
 const ViewProjectReport = (req, res) => {
   const { reporting_manager_id } = req.params;
   const { toDate, fromDate, search } = req.query;
+  console.log("detailed report to manager -------> yahan hun");
   console.log("Search terms", search);
   console.log("toDate", toDate, "---fromDate:", fromDate);
   let altQuery = "";
@@ -26,8 +27,11 @@ const ViewProjectReport = (req, res) => {
                 '"task_id":', e.id, 
                 ',"employee_id":', e.employee_id, 
                 ', "name":"',em.name,                
-                '", "task":"', e.task, 
-                '", "allocated_time":', e.allocated_time,  
+                '", "task":"', tm.task_name, 
+                '","module_id":', mm.module_id, 
+                ', "module_name":"',mm.module_name,
+                '", "task_percent":',e.task_percent,
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
@@ -44,16 +48,20 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    task_master AS tm ON tm.task_id = e.task_id
+LEFT JOIN
+    module_master AS mm ON e.module_id = mm.module_id
 WHERE 
     e.manager_id = ?
 AND
-    e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY)
+    e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY)
 AND
 (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
 GROUP BY 
     e.project_id;   `;
   } else {
-    console.log("Running specific date range query");
+    // console.log("Running specific date range query");
 
     altQuery = `
     SELECT 
@@ -69,8 +77,11 @@ GROUP BY
                 '"task_id":', e.id, 
                 ',"employee_id":', e.employee_id, 
                 ', "name":"',em.name,                
-                '", "task":"', e.task, 
-                '", "allocated_time":', e.allocated_time,  
+                '", "task":"', tm.task_name, 
+                '","module_id":', mm.module_id, 
+                ', "module_name":"',mm.module_name,
+                '", "task_percent":',e.task_percent,
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
@@ -87,6 +98,10 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    task_master AS tm ON tm.task_id = e.task_id
+LEFT JOIN
+    module_master AS mm ON e.module_id = mm.module_id
 WHERE 
     e.manager_id = ?
 AND 
@@ -106,7 +121,7 @@ GROUP BY
         console.log(results);
         results = JSON.parse(JSON.stringify(results));
         const temp = results.map((item) => {
-          console.log("obj", item);
+          // console.log("obj", item);
           return {
             ...item,
             tasks_details: JSON.parse(item.tasks_details),

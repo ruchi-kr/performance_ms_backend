@@ -4,7 +4,8 @@ const connection = require("../db");
 const ViewProjectReport = (req, res) => {
   const { reporting_manager_id } = req.params;
   const { toDate, fromDate, search, page = 1, pageSize = 10 } = req.query;
-  console.log("Search terms", search);
+  
+  console.log("Search terms manager id------ yahan hun", search,reporting_manager_id);
   console.log("page", page, "---pageSize:", pageSize);
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   let altQuery = "";
@@ -26,8 +27,9 @@ const ViewProjectReport = (req, res) => {
             CONCAT(
                 '{', 
                 '"task_id":', e.id, 
-                ', "task":"', e.task, 
-                '", "allocated_time":', e.allocated_time,  
+                ', "task":"', tm.task_name, 
+                '", "task_percent":', e.task_percent,  
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
@@ -44,9 +46,11 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 LEFT JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    task_master AS tm ON tm.task_id = e.task_id
 WHERE 
     e.manager_id = ?
-    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -90 DAY) 
+    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY) 
     AND
     (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
 GROUP BY 
@@ -67,8 +71,9 @@ GROUP BY
             CONCAT(
                 '{', 
                 '"task_id":', e.id, 
-                ', "task":"', e.task, 
-                '", "allocated_time":', e.allocated_time,  
+                ', "task":"', tm.task_name, 
+                '", "task_percent":', e.task_percent,  
+                ', "allocated_time":', e.allocated_time,  
                 ', "actual_time":', e.actual_time,                 
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
@@ -85,6 +90,8 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 LEFT JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    task_master AS tm ON tm.task_id = e.task_id
 WHERE 
     e.manager_id = ?
     AND LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%'))
@@ -100,12 +107,12 @@ GROUP BY
       altQuery,
       [reporting_manager_id, search, toDate, fromDate],
       (err, results) => {
+        console.log("results", results);
         if (results === undefined) {
           return res.status(StatusCodes.NO_CONTENT);
         }
         results = JSON.parse(JSON.stringify(results));
         const temp = results.map((item) => {
-          // console.log("obj", item);
           return {
             ...item,
             tasks_details: JSON.parse(item.tasks_details),
@@ -122,7 +129,7 @@ GROUP BY
 const ViewParticularEmployeeReportProjectWise = (req, res) => {
   const { reporting_manager_id, employee_id } = req.params;
   const { toDate, fromDate, search, page = 1, pageSize = 10 } = req.query;
-  console.log("Search terms", search);
+  console.log("Search terms,reporting manager", search, reporting_manager_id);
   console.log("page", page, "---pageSize:", pageSize);
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   let altQuery = "";
