@@ -182,7 +182,7 @@ router.delete("/api/admin/deleteUser/:user_id", (req, res) => {
         .status(500)
         .json({ error: "An error occurred while processing your request." });
     } else {
-      res.status(200).send(" User deleted successfully");
+      res.status(200).send({msg:"User deleted successfully"});
     }
   });
 });

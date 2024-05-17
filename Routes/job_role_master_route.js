@@ -6,6 +6,7 @@ const { StatusCodes } = require("http-status-codes");
 
 // API FOR Job Role CRUD
 
+
 // CREATE job role
 router.post("/api/admin/addJobRole", (req, res) => {
   const { job_role_name } = req.body;
@@ -91,7 +92,7 @@ router.post("/api/admin/editJobRole/:job_id", (req, res) => {
   if (!JobRoleId) {
     return res.status(400).send("Job Id is required");
   }
-
+  const selectQuery = "SELECT * FROM job_role_master WHERE job_role_name = ?";
   const fetchQuery = "SELECT * FROM job_role_master WHERE job_id=?";
   const updateQuery =
     "UPDATE job_role_master SET job_role_name=? WHERE job_id=?";
@@ -108,6 +109,15 @@ router.post("/api/admin/editJobRole/:job_id", (req, res) => {
 
     const existingJobRole = fetchResults[0];
     const { job_role_name } = req.body;
+    connection.query(selectQuery, [job_role_name], (selectErr, selectResults) => {
+      if (selectErr) {
+        return res.status(500).send("Error checking job role existence");
+      }
+  
+      if (selectResults.length > 0) {
+        return res.status(400).json({ error: "Job Role name already exists." });
+      }
+   
 
     // Update designation data
     connection.query(
@@ -142,6 +152,7 @@ router.post("/api/admin/editJobRole/:job_id", (req, res) => {
       }
     );
   });
+  });
 });
 
 // Delete job role
@@ -151,7 +162,7 @@ router.delete("/api/admin/deleteJobRole/:job_id", (req, res) => {
 
   // Check if the job role is assigned to any employee
   const checkQuery =
-    "SELECT COUNT(*) as count FROM job_role_master WHERE job_id = ?";
+    "SELECT COUNT(*) as count FROM employee_master WHERE job_id = ?";
   connection.query(checkQuery, [JobRoleId], (checkErr, checkResults) => {
     if (checkErr) throw checkErr;
 
@@ -163,7 +174,7 @@ router.delete("/api/admin/deleteJobRole/:job_id", (req, res) => {
       const deleteQuery = "DELETE FROM job_role_master WHERE job_id = ?";
       connection.query(deleteQuery, [JobRoleId], (deleteErr, deleteResults) => {
         if (deleteErr) throw deleteErr;
-        return res.send("job role deleted successfully");
+        return res.status(200).send({msg:"job role deleted successfully"});
       });
     }
   });

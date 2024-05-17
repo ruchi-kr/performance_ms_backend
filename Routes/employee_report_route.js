@@ -5,75 +5,105 @@ const connection = require("../db");
 
 // for project-wise report
 router.get("/api/user/getReportspw/:employee_id", (req, res) => {
-    const employee_id = req.params.employee_id;
-    const {page, pageSize, name = "", fromDate="", toDate="" } = req.query;
-   console.clear();
-    // Validate page and pageSize  page, pageSize, 
-    if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
-      return res.status(400).send("Invalid page or pageSize");
-    }
-  
-    const offset = (parseInt(page) - 1) * parseInt(pageSize);
-  
-    let query = `
-      SELECT e.project_id,
-        SUM(e.allocated_time) AS total_allocated_hours,
-        SUM(e.actual_time) AS total_actual_hours,
-        p.schedule_start_date,
-        p.schedule_end_date,
-        p.project_name,
-        (
-          SELECT CONCAT(
+  const employee_id = req.params.employee_id;
+  const { page, pageSize, name = "", fromDate = "", toDate = "" } = req.query;
+  console.clear();
+  // Validate page and pageSize  page, pageSize,
+  if (!page || isNaN(page) || !pageSize || isNaN(pageSize)) {
+    return res.status(400).send("Invalid page or pageSize");
+  }
+
+  const offset = (parseInt(page) - 1) * parseInt(pageSize);
+
+  let query = `
+    SELECT 
+    e.project_id,
+    SUM(e.allocated_time) AS total_allocated_hours,
+    SUM(e.actual_time) AS total_actual_hours,
+    p.schedule_start_date,
+    p.schedule_end_date,
+    p.project_name,
+    (
+        SELECT CONCAT(
             '[',
             GROUP_CONCAT(
-              JSON_OBJECT(
-                'task', t.task,
-                'created_at', t.created_at,
-                'status', t.status,
-                'allocated_time', t.allocated_time,
-                'actual_time', t.actual_time
-              )
+                JSON_OBJECT(
+                    'module_name', m.module_name,
+                    'to_date', m.to_date,
+                    'from_date', m.from_date,
+                    'status', m.status,
+                    'stage', m.stage,
+                    'tasks', (
+                        SELECT CONCAT(
+                            '[',
+                            GROUP_CONCAT(
+                                JSON_OBJECT(
+                                  'task_name', t.task_name,
+                                  'task_allocated_time', t.allocated_time,
+                                  'stage', t.stage,
+                                  'created_at',e.created_at,
+                                  'employee_allocated_time',e.allocated_time,
+                                  'employee_actual_time',e.actual_time,
+                                  'status',e.status   
+                                )
+                            ),
+                            ']'
+                        )
+                        FROM task_master t
+                        WHERE t.module_id = m.module_id
+                    )
+                )
             ),
             ']'
-          )
-          FROM employee t
-          WHERE t.project_id = e.project_id
-          AND t.user_id = e.user_id`;
-  
-   
-    if (fromDate && toDate) {
-      query += ` AND DATE(t.created_at) BETWEEN ? AND ? `;
-   
-    }
-  
-    query += `) AS tasks
-              FROM employee e
-              JOIN project_master p ON e.project_id = p.project_id
-              WHERE e.user_id = ?
-              AND p.project_name LIKE '%${name}%'
-              GROUP BY e.project_id 
+        )
+        FROM module_master m
+        WHERE m.project_id = e.project_id
+        AND e.user_id = ?`;
+
+  if (fromDate && toDate) {
+    query += ` AND DATE(t.created_at) BETWEEN ? AND ? `;
+  }
+
+  query += ` ) AS modules
+    FROM employee e
+    JOIN project_master p ON e.project_id = p.project_id
+    WHERE e.user_id = 3
+    GROUP BY e.project_id
               `;
-              if (!fromDate && !toDate) {
-                query += ` LIMIT ? OFFSET ?`;
-           
-              }
-    console.log("query1",query)
-    const queryParams = fromDate && toDate ? [fromDate, toDate, employee_id] : [employee_id];
-    if (!fromDate && !toDate) {
-        queryParams.push(parseInt(pageSize), offset);
+  if (!fromDate && !toDate) {
+    query += ` LIMIT ? OFFSET ?`;
+  }
+
+  console.log("query1", query);
+  const queryParams =
+    fromDate && toDate ? [fromDate, toDate, employee_id] : [employee_id];
+  if (!fromDate && !toDate) {
+    queryParams.push(parseInt(pageSize), offset);
+  }
+  connection.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
+    } else {
+      
+      results = results.map((item) => {
+        return {
+            ...item,
+            modules: JSON.parse(item.modules).map((module) => {
+                return {
+                    ...module,
+                    tasks: JSON.parse(module.tasks)
+                };
+            })
+        };
+    });
     }
-    connection.query(
-      query,
-      queryParams,
-      (err, results) => {
-        if (err) throw err;
-        console.log("results of getreports",results)
-        res.status(200).json(results);
-      }
-    );
-    
+    console.log("results of getreports", results);
+    res.status(200).json(results);
   });
-  
+});
 
 // for date - wise report
 router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
@@ -147,7 +177,7 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
       LIMIT ${parseInt(pageSize)} OFFSET ${offset}
      `;
 
-  params.push( parseInt(pageSize),offset);
+  params.push(parseInt(pageSize), offset);
 
   connection.query(query, params, (err, results) => {
     if (err) throw err;
@@ -155,7 +185,5 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
     res.status(200).json(results);
   });
 });
-
-
 
 module.exports = router;

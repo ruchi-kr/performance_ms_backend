@@ -181,12 +181,23 @@ const EditModuleTask = async (req, res) => {
 
 const DeleteModuleTask = async (req, res) => {
   const { task_id } = req.params;
+  // Check if the task is assigned to any employee
+  const checkQuery =
+    "SELECT COUNT(*) as count FROM employee WHERE task_id = ?";
+  connection.query(checkQuery, [task_id], (checkErr, checkResults) => {
+    if (checkErr) throw checkErr;
 
-  // Check if the module is assigned to any employee
+    if (checkResults[0].count > 0) {
+      res.status(400).send({
+        error: "Task cannot be deleted as it is assigned to an employee",
+      });
+    } else {
   const deleteQuery = "DELETE FROM task_master WHERE task_id = ?";
   connection.query(deleteQuery, [task_id], (deleteErr, deleteResults) => {
     if (deleteErr) console.log(deleteErr);
     res.status(200).json({ msg: "Task Deleted Successfully" });
+  });
+};
   });
 };
 module.exports = {

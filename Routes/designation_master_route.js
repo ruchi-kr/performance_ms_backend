@@ -8,6 +8,16 @@ const connection = require("../db");
 // CREATE designation
 router.post("/api/admin/addDesignation", (req, res) => {
   const { designation_name } = req.body;
+  const selectQuery = "SELECT * FROM designation_master WHERE designation_name = ?";
+  connection.query(selectQuery, [designation_name], (err, results) => {
+    if (err) {
+      console.log(err);
+      return res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
+    } else if (results.length > 0) {
+      return res.status(400).json({ error: "designation name already exists." });
+    } else {
   const query = "INSERT INTO designation_master ( designation_name) VALUES (?)";
   connection.query(query, [designation_name], (err, results) => {
     if (err) {
@@ -19,6 +29,7 @@ router.post("/api/admin/addDesignation", (req, res) => {
       res.status(200).send("designation Added Successfully");
     }
   });
+}});
 });
 
 // Get designation
@@ -77,11 +88,12 @@ router.post("/api/admin/editDesignation/:designation_id", (req, res) => {
   if (!DesignationId) {
     return res.status(400).send("Designation Id is required");
   }
-
+  const selectQuery = "SELECT * FROM designation_master WHERE designation_name = ?";
   const fetchQuery = "SELECT * FROM designation_master WHERE designation_id=?";
   const updateQuery =
     "UPDATE designation_master SET designation_name=? WHERE designation_id=?";
 
+   
   // Fetch designation by ID
   connection.query(fetchQuery, [DesignationId], (fetchErr, fetchResults) => {
     if (fetchErr) {
@@ -91,9 +103,17 @@ router.post("/api/admin/editDesignation/:designation_id", (req, res) => {
     if (fetchResults.length === 0) {
       return res.status(404).send("designation not found");
     }
-
     const existingManager = fetchResults[0];
     const { designation_name } = req.body;
+    connection.query(selectQuery, [designation_name], (selectErr, selectResults) => {
+      if (selectErr) {
+        return res.status(500).send("Error checking designation existence");
+      }
+  
+      if (selectResults.length > 0) {
+        return res.status(400).json({ error: "Designation name already exists." });
+      }
+   
 
     // Update designation data
     connection.query(
@@ -126,6 +146,7 @@ router.post("/api/admin/editDesignation/:designation_id", (req, res) => {
       }
     );
   });
+  });
 });
 
 router.delete("/api/admin/deleteDesignation/:designation_id", (req, res) => {
@@ -133,7 +154,7 @@ router.delete("/api/admin/deleteDesignation/:designation_id", (req, res) => {
 
   // Check if the designation is assigned to any employee
   const checkQuery =
-    "SELECT COUNT(*) as count FROM designation_master WHERE designation_id = ?";
+    "SELECT COUNT(*) as count FROM employee_master WHERE designation_id = ?";
   connection.query(checkQuery, [DesignationId], (checkErr, checkResults) => {
     if (checkErr) throw checkErr;
 
@@ -149,7 +170,7 @@ router.delete("/api/admin/deleteDesignation/:designation_id", (req, res) => {
         [DesignationId],
         (deleteErr, deleteResults) => {
           if (deleteErr) throw deleteErr;
-          res.send("designation deleted successfully");
+          res.status(200).send({msg:"designation deleted successfully"});
         }
       );
     }

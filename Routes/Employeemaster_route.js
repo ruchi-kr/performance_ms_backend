@@ -70,13 +70,24 @@ router.get("/api/admin/getEmployees", (req, res) => {
   } = req.query;
 
   const offset = Number((page - 1) * pageSize);
-
-  // const query = `SELECT * FROM project_master WHERE project_name LIKE '%${name}%' OR email LIKE '%${email}%' OR designation LIKE '%${designation}%' LIMIT ? OFFSET ?`;
-  // const query = 'SELECT * FROM employee_master';
-  // const query ='SELECT em.*,rmm.name as reporting_name FROM `employee_master` as em LEFT JOIN reporting_manager_master as rmm On rmm.reporting_manager_id = em.reporting_manager_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
-  const query = `SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%' ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
-  // OR u.email LIKE '%${email}%'
-  // OR u.email LIKE '%${email}%'
+  const query = `
+  SELECT 
+    u.*, 
+    m.employee_id AS manager_id, 
+    m.name AS manager_name, 
+    m.mobile_no AS manager_mobile_no, 
+    m.email AS manager_email, 
+    m.designation_id AS manager_designation_id, 
+    j.job_role_name, 
+    d.designation_name AS designation_name
+  FROM employee_master u 
+  LEFT JOIN employee_master m ON u.manager_id = m.employee_id 
+  LEFT JOIN job_role_master j ON u.job_id = j.job_id
+  LEFT JOIN designation_master d ON u.designation_id = d.designation_id
+  WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%'
+  ORDER BY ${sortBy} ${sortOrder} 
+  LIMIT ? OFFSET ?`;
+  // const query = `SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id WHERE u.name LIKE '%${name}%' OR u.email LIKE '%${email}%' ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
   connection.query(query, [Number(pageSize), offset], (err, results) => {
     // if (err) throw err;
     if (err) {

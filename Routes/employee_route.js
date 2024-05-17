@@ -141,8 +141,10 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
         res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
+      }else if (results.affectedRows === 0){
+        res.status(400).send({ msg: "Add values to updated." });
       } else {
-        res.status(200).send("Task Updated Successfully");
+        res.status(200).send({ msg: "Task Updated Successfully"});
       }
     }
   );
@@ -159,7 +161,7 @@ router.delete("/api/user/deleteTask/:taskId", (req, res) => {
         .status(500)
         .json({ error: "An error occurred while processing your request." });
     } else {
-      res.status(200).send("Task Deleted Successfully");
+      res.status(200).send({ msg: "Task Deleted Successfully"});
     }
   });
 });

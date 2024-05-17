@@ -154,6 +154,12 @@ router.post(
       stage,
       module_id,
     } = req.body;
+
+    if (schedule_end_date <= schedule_start_date) {
+      return res
+        .status(400)
+        .json({ error: "End date should be greater than start date." });
+    }
     const updateQuery =
       "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
 
@@ -294,7 +300,7 @@ router.delete(
           .status(500)
           .json({ error: "An error occurred while processing your request." });
       } else {
-        res.status(200).send("Project deleted successfully");
+        res.status(200).send({msg: "Project deleted successfully"});
       }
     });
   }
