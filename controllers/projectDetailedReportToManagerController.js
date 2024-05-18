@@ -4,7 +4,9 @@ const connection = require("../db");
 const ViewProjectReport = (req, res) => {
   const { reporting_manager_id } = req.params;
   const { toDate, fromDate, search } = req.query;
-  console.log("detailed report to manager -------> yahan hun");
+  console.log(
+    "detailed report to manager -------> yahan hun ---->yahan hi hun111"
+  );
   console.log("Search terms", search);
   console.log("toDate", toDate, "---fromDate:", fromDate);
   let altQuery = "";
@@ -29,6 +31,7 @@ const ViewProjectReport = (req, res) => {
                 ', "name":"',em.name,                
                 '", "task":"', tm.task_name, 
                 '","module_id":', mm.module_id, 
+                ',"planned_task_allocated_time":', tm.allocated_time, 
                 ', "module_name":"',mm.module_name,
                 '", "task_percent":',e.task_percent,
                 ', "allocated_time":', e.allocated_time,  
@@ -61,12 +64,12 @@ AND
 GROUP BY 
     e.project_id;   `;
   } else {
-    // console.log("Running specific date range query");
+    console.log("Running specific date range query");
 
     altQuery = `
     SELECT 
     pm.project_id,
-    pm.project_name,
+    pm.project_name,    
     SUM(e.allocated_time) AS total_allocated_time,
     SUM(e.actual_time) AS total_actual_time,
     CONCAT(
@@ -78,7 +81,8 @@ GROUP BY
                 ',"employee_id":', e.employee_id, 
                 ', "name":"',em.name,                
                 '", "task":"', tm.task_name, 
-                '","module_id":', mm.module_id, 
+                '","module_id":', mm.module_id,    
+                ',"planned_task_allocated_time":', tm.allocated_time,             
                 ', "module_name":"',mm.module_name,
                 '", "task_percent":',e.task_percent,
                 ', "allocated_time":', e.allocated_time,  
@@ -118,7 +122,7 @@ GROUP BY
       altQuery,
       [reporting_manager_id, search, toDate, fromDate],
       (err, results) => {
-        console.log(results);
+        console.log("results-->", results);
         results = JSON.parse(JSON.stringify(results));
         const temp = results.map((item) => {
           // console.log("obj", item);
