@@ -27,7 +27,7 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
         SELECT CONCAT(
             '[',
             GROUP_CONCAT(
-                JSON_OBJECT(
+               JSON_OBJECT(
                     'module_name', m.module_name,
                     'to_date', m.to_date,
                     'from_date', m.from_date,
@@ -37,7 +37,7 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
                         SELECT CONCAT(
                             '[',
                             GROUP_CONCAT(
-                                JSON_OBJECT(
+                               JSON_OBJECT(
                                   'task_name', t.task_name,
                                   'task_allocated_time', t.allocated_time,
                                   'stage', t.stage,
@@ -51,6 +51,8 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
                         )
                         FROM task_master t
                         WHERE t.module_id = m.module_id
+                        AND t.task_id = e.task_id
+                       
                     )
                 )
             ),
@@ -58,16 +60,22 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
         )
         FROM module_master m
         WHERE m.project_id = e.project_id
-        AND e.user_id = ?`;
+       
+        AND m.module_id IN (
+          SELECT DISTINCT module_id
+          FROM employee
+          WHERE project_id = e.project_id
+      )
+        `;
 
   if (fromDate && toDate) {
-    query += ` AND DATE(t.created_at) BETWEEN ? AND ? `;
+    query += ` AND DATE(e.created_at) BETWEEN ? AND ? `;
   }
 
   query += ` ) AS modules
     FROM employee e
     JOIN project_master p ON e.project_id = p.project_id
-    WHERE e.user_id = 3
+    WHERE e.user_id = ?
     GROUP BY e.project_id
               `;
   if (!fromDate && !toDate) {
@@ -91,12 +99,12 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
       results = results.map((item) => {
         return {
             ...item,
-            modules: JSON.parse(item.modules).map((module) => {
+            modules: JSON.parse(item.modules) ? JSON.parse(item.modules).map((module) => {
                 return {
                     ...module,
                     tasks: JSON.parse(module.tasks)
                 };
-            })
+            }):[],
         };
     });
     }

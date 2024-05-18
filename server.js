@@ -25,6 +25,7 @@ app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
 app.use(require("./Routes/designation_master_route"));
 app.use(require("./Routes/projectmaster_route"));
+app.use(require("./Routes/dashdata_route"));
 app.use(require("./Routes/remarkRoutes"));
 //Teams routes
 app.use("/api/user", teamsRoutes);
