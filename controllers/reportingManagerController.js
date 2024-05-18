@@ -52,13 +52,13 @@ const GetDailyReportToManagerPerEmployee = async (req, res) => {
         }
       );
     } else if (project_id === "null" || project_id === null) {
-      console.log("running particular employees query");
+      console.log("running particular employees query yahan hun");
       query =
-        "SELECT e.*, pm.project_name,em.*,tm.task_name,mm.module_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN module_master AS mm ON e.module_id = mm.module_id LEFT JOIN task_master AS tm ON e.task_id = tm.task_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND ((DATE(e.created_at)=CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted') OR (DATE(e.actual_end_date)=CURRENT_DATE() AND e.status = 'completed'))";
+        "SELECT e.*, pm.project_name,em.*,tm.task_name,mm.module_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN module_master AS mm ON e.module_id = mm.module_id LEFT JOIN task_master AS tm ON e.task_id = tm.task_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND ((DATE(e.created_at)=CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted') OR (DATE(e.actual_end_date)=CURRENT_DATE() AND e.status = 'completed')) ORDER BY created_at DESC";
       connection.query(query, [manager_id, employee_id], (err, results) => {
         if (err) throw err;
         temp = JSON.parse(JSON.stringify(results));
-        console.log("data", temp);
+        // console.log("data", temp);
 
         return res.status(StatusCodes.OK).json({ data: temp });
       });
