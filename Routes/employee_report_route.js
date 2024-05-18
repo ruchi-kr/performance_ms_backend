@@ -51,7 +51,11 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
                         )
                         FROM task_master t
                         WHERE t.module_id = m.module_id
-                        AND t.task_id = e.task_id
+                        AND t.task_id IN (
+                          SELECT DISTINCT task_id
+                          FROM employee
+                          WHERE project_id = e.project_id
+                        )
                        
                     )
                 )
@@ -127,49 +131,61 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
 
   let query = `
-    SELECT
-      (e.created_at) AS date,
-      SUM(e.allocated_time) AS total_allocated_hours,
-      SUM(e.actual_time) AS total_actual_hours,
-      CONCAT(
-        '[',
-        GROUP_CONCAT(
+  SELECT
+  DATE(e.created_at) AS date,
+  CONCAT(
+      '[',
+      GROUP_CONCAT(
           DISTINCT JSON_OBJECT(
-            'project_id', e.project_id,
-            'project_name', p.project_name,
-            'tasks',(
-              SELECT
-                CONCAT(
-                  '[',
-                  GROUP_CONCAT(
-                    DISTINCT JSON_OBJECT(
-                      'task', t.task,
-                      'status', t.status,
-                      'allocated_time', t.allocated_time,
-                      'actual_time', t.actual_time
-                    )
-                  ),
-                  ']'
-                )
-              FROM
-                employee t
-              WHERE
-                t.project_id = e.project_id
-                AND t.user_id = e.user_id
-                AND DATE(t.created_at) = DATE(e.created_at)
-              GROUP BY
-                e.project_id = t.project_id
-            )
-          )
-        ),
-        ']'
-      ) AS projects
-    FROM
-      employee e
-    JOIN
-      project_master p ON e.project_id = p.project_id
-    WHERE
-      e.user_id = ?
+              'project_id', e.project_id,
+              'project_name', p.project_name,
+              'modules',(
+                  SELECT
+                      CONCAT(
+                          '[',
+                          GROUP_CONCAT(
+                              DISTINCT JSON_OBJECT(
+                                  'module_id', m.module_id,
+                                  'module_name', m.module_name,
+                                  'tasks', (
+                                      SELECT CONCAT(
+                                          '[',
+                                          GROUP_CONCAT(
+                                              JSON_OBJECT(
+                                                  'task_id', t.task_id,
+                                  'task_name', t.task_name,
+                                  'task_allocated_time', t.allocated_time,
+                                  'stage', t.stage,
+                                  'created_at',e.created_at,
+                                  'employee_allocated_time',e.allocated_time,
+                                  'employee_actual_time',e.actual_time,
+                                  'status',e.status   
+                                              )
+                                          ),
+                                          ']'
+                                      )
+                                  FROM task_master t
+                                  WHERE t.module_id = m.module_id AND t.task_id = e.task_id
+                                    AND e.user_id = e.user_id
+                                      AND DATE(e.created_at) = DATE(e.created_at)
+                                  GROUP BY t.module_id = m.module_id
+                              ) )
+                          ),
+                          ']'
+                      )
+                  FROM module_master m WHERE m.module_id = e.module_id
+                  AND e.user_id = e.user_id
+                      AND DATE(e.created_at) = DATE(e.created_at)
+                           GROUP BY e.project_id = m.project_id
+              
+          ) )
+      ),
+      ']'
+  ) AS projects
+FROM employee e
+JOIN
+  project_master p ON e.project_id = p.project_id
+WHERE e.user_id = ?
       `;
 
   const params = [employee_id, fromDate, toDate];
@@ -188,9 +204,33 @@ router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
   params.push(parseInt(pageSize), offset);
 
   connection.query(query, params, (err, results) => {
-    if (err) throw err;
-
-    res.status(200).json(results);
+    if (err){
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while processing your request." });
+    }
+    results = results.map((item) => {
+      return {
+          ...item,
+          projects: JSON.parse(item.projects) ? JSON.parse(item.projects).map((project) => {
+              return {
+                  ...project,
+                  modules: JSON.parse(project.modules) ? JSON.parse(project.modules).map((tasks) => {
+                    return{
+                        ...tasks,
+                        tasks: JSON.parse(tasks.tasks)
+                    };
+                  }):[],
+                  };
+              
+          }):[],
+      };
+  });
+  
+  console.log("results of getreports date wise", results);
+  res.status(200).json(results);
+    // res.status(200).json(results);
   });
 });
 
