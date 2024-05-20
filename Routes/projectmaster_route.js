@@ -8,8 +8,8 @@ const { StatusCodes } = require("http-status-codes");
 // API FOR PROJECT CRUD
 
 // CREATE project
-router.post("/api/admin/addProject", protectedRoute, (req, res) => {
-  const { project_name, schedule_start_date, schedule_end_date, stage } =
+router.post("/api/admin/addProject", protectedRoute, async(req, res) => {
+  const { project_name,project_details, schedule_start_date, schedule_end_date, stage } =
     req.body;
 
   // Check if schedule_end_date is greater than schedule_start_date
@@ -19,10 +19,10 @@ router.post("/api/admin/addProject", protectedRoute, (req, res) => {
       .json({ error: "End date should be greater than start date." });
   }
   const query =
-    "INSERT INTO project_master ( project_name, schedule_start_date,schedule_end_date,stage) VALUES (?, ?, ?,?)";
+    "INSERT INTO project_master ( project_name,project_details, schedule_start_date,schedule_end_date,stage) VALUES (?,?, ?, ?,?)";
   connection.query(
     query,
-    [project_name, schedule_start_date, schedule_end_date, stage],
+    [project_name,project_details, schedule_start_date, schedule_end_date, stage],
     (err, results) => {
       if (err) {
         console.log(err);
@@ -30,7 +30,9 @@ router.post("/api/admin/addProject", protectedRoute, (req, res) => {
           .status(500)
           .json({ error: "An error occurred while processing your request." });
       } else {
-        res.status(200).send("Project Added Successfully");
+        console.log(results);
+        const project_id = results.insertId;
+        res.status(200).send({ project_id, message: "Project Added Successfully"});
       }
     }
   );
@@ -149,6 +151,7 @@ router.post(
     const { project_id } = req.params;
     const {
       project_name,
+      project_details,
       schedule_start_date,
       schedule_end_date,
       stage,
@@ -161,7 +164,7 @@ router.post(
         .json({ error: "End date should be greater than start date." });
     }
     const updateQuery =
-      "UPDATE project_master SET project_name=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
+      "UPDATE project_master SET project_name=?,project_details=?, schedule_start_date =?, schedule_end_date=?, stage=?, module_id=? WHERE 	project_id=?";
 
     const [projectDetails] = await asyncConnection.query(
       "SELECT * FROM project_master WHERE project_id = ?",
@@ -197,6 +200,7 @@ router.post(
       }
       await newConnection.query(updateQuery, [
         project_name,
+        project_details,
         schedule_start_date,
         schedule_end_date,
         stage,
