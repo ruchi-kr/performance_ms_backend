@@ -19,8 +19,9 @@ const projectDetailedReportToManagerRoutes = require("./Routes/projectDetailedRe
 const getCurrentTimeStampRoutes = require("./Routes/currentTimeRouter");
 const managerRemarksController = require("./Routes/managerRemarksController");
 const projectPlanRoutes = require("./Routes/projectPlanRoutes");
-const moduleTasksRoutes = require("./Routes/moduleTasksRouter")
-app.use(require("./Routes/Auth_route"));
+const moduleTasksRoutes = require("./Routes/moduleTasksRouter");
+// app.use(require("./Routes/Auth_route"));
+app.use(require("./Routes/Auth_route_email"));
 app.use(require("./Routes/Employeemaster_route"));
 app.use(require("./Routes/usermaster_route"));
 app.use(require("./Routes/designation_master_route"));
