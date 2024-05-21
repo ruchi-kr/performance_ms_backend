@@ -116,7 +116,64 @@ router.get("/api/admin/getUsers", (req, res) => {
 });
 
 // EDIT
-router.post("/api/admin/editUser/:user_id", (req, res) => {
+// router.post("/api/admin/editUser/:user_id", async(req, res) => {
+//   const UserId = req.params.user_id;
+
+//   if (!UserId) {
+//     return res.status(400).send("User ID is required");
+//   }
+
+  
+//   const fetchQuery = "SELECT * FROM user_master WHERE user_id=?";
+//   const updateQuery =
+//     "UPDATE user_master SET email_id=?, role=?, status =?, user_type=?, password=?, hashed_password=? WHERE user_id=?";
+
+//   // Fetch project by ID
+//   connection.query(fetchQuery, [UserId], (fetchErr, fetchResults) => {
+//     if (fetchErr) {
+//       return res.status(500).send("Error fetching user data");
+//     }
+
+//     if (fetchResults.length === 0) {
+//       return res.status(404).send("User not found");
+//     }
+
+//     const existingUser = fetchResults[0];
+//     const {  email_id, role, status, user_type, password } = req.body;
+  
+//     // Update project data
+//     connection.query(
+//       updateQuery,
+//       [email_id, role, status, user_type, password, UserId],
+//       (updateErr, updateResults) => {
+//         if (updateErr) {
+//           return res.status(500).send("Error updating user");
+//         }
+
+//         // Fetch updated project data
+//         connection.query(
+//           fetchQuery,
+//           [UserId],
+//           (fetchUpdatedErr, fetchUpdatedResults) => {
+//             if (fetchUpdatedErr) {
+//               return res.status(500).send("Error fetching updated user data");
+//             }
+
+//             const updatedUser = fetchUpdatedResults[0];
+//             if (updatedUser) {
+//               res.status(200).json(updatedUser); // Return updated project data
+//             } else {
+//               res.status(500).send("Failed to fetch updated user data"); // Handle case where updated project data is not found
+//             }
+//           }
+//         );
+//       }
+//     );
+//   });
+// });
+
+// edit with hashed password
+router.post("/api/admin/editUser/:user_id", async (req, res) => {
   const UserId = req.params.user_id;
 
   if (!UserId) {
@@ -125,10 +182,10 @@ router.post("/api/admin/editUser/:user_id", (req, res) => {
 
   const fetchQuery = "SELECT * FROM user_master WHERE user_id=?";
   const updateQuery =
-    "UPDATE user_master SET email_id=?, role=?, status =?, user_type=?, password=? WHERE user_id=?";
+    "UPDATE user_master SET email_id=?, role=?, status=?, user_type=?, password=?,hashed_password=? WHERE user_id=?";
 
-  // Fetch project by ID
-  connection.query(fetchQuery, [UserId], (fetchErr, fetchResults) => {
+  // Fetch user by ID
+  connection.query(fetchQuery, [UserId], async (fetchErr, fetchResults) => {
     if (fetchErr) {
       return res.status(500).send("Error fetching user data");
     }
@@ -138,38 +195,51 @@ router.post("/api/admin/editUser/:user_id", (req, res) => {
     }
 
     const existingUser = fetchResults[0];
-    const {  email_id, role, status, user_type, password } = req.body;
+    const { email_id, role, status, user_type, password} = req.body;
 
-    // Update project data
-    connection.query(
-      updateQuery,
-      [email_id, role, status, user_type, password, UserId],
-      (updateErr, updateResults) => {
-        if (updateErr) {
-          return res.status(500).send("Error updating user");
-        }
+    try {
+      let hashedPassword = existingUser.hashed_password; // Default to existing hashed password
 
-        // Fetch updated project data
-        connection.query(
-          fetchQuery,
-          [UserId],
-          (fetchUpdatedErr, fetchUpdatedResults) => {
-            if (fetchUpdatedErr) {
-              return res.status(500).send("Error fetching updated user data");
-            }
-
-            const updatedUser = fetchUpdatedResults[0];
-            if (updatedUser) {
-              res.status(200).json(updatedUser); // Return updated project data
-            } else {
-              res.status(500).send("Failed to fetch updated user data"); // Handle case where updated project data is not found
-            }
-          }
-        );
+      // If password field is provided, hash the new password
+      if (password) {
+        hashedPassword = await bcrypt.hash(password, 10);
       }
-    );
+
+      // Update user data
+      connection.query(
+        updateQuery,
+        [email_id, role, status, user_type,password, hashedPassword, UserId],
+        (updateErr, updateResults) => {
+          if (updateErr) {
+            return res.status(500).send("Error updating user");
+          }
+
+          // Fetch updated user data
+          connection.query(
+            fetchQuery,
+            [UserId],
+            (fetchUpdatedErr, fetchUpdatedResults) => {
+              if (fetchUpdatedErr) {
+                return res.status(500).send("Error fetching updated user data");
+              }
+
+              const updatedUser = fetchUpdatedResults[0];
+              if (updatedUser) {
+                res.status(200).json(updatedUser); // Return updated user data
+              } else {
+                res.status(500).send("Failed to fetch updated user data"); // Handle case where updated user data is not found
+              }
+            }
+          );
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error updating user");
+    }
   });
 });
+
 
 // DELETE
 router.delete("/api/admin/deleteUser/:user_id", (req, res) => {
