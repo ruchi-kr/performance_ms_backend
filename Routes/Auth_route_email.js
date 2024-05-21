@@ -156,20 +156,20 @@ router.post("/api/forgotPasswordVerify", (req, res) => {
 
   // Check if the user exists in the database
   connection.query(
-    "SELECT * FROM user_master WHERE email_id = ? AND otp = ?",
-    [email_id, otp],
+    "SELECT * FROM user_master WHERE email_id = ? ",
+    [email_id],
     (err, results) => {
       if (err || results.length === 0) {
-        return res.status(404).send({ error: "Invalid email or OTP" });
+        return res.status(404).send({ error: "Invalid email " });
       }
 
       // Hash the new password
-      bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
+      bcryptjs.hash(password, 10, (hashErr, hashedPassword) => {
         if (hashErr) throw hashErr;
 
         // Update the user's password in the database
-        const updateQuery = "UPDATE user_master SET password = ? WHERE email_id = ?";
-        connection.query(updateQuery, [hashedPassword, email_id], (updateErr) => {
+        const updateQuery = "UPDATE user_master SET password = ?, hashed_password = ? WHERE email_id = ?";
+        connection.query(updateQuery, [password,hashedPassword, email_id], (updateErr) => {
           if (updateErr) throw updateErr;
           res.status(200).send({ message: "Password reset successful" });
         });
