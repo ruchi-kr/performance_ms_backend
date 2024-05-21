@@ -94,6 +94,7 @@ router.get("/api/admin/getAllModule/:project_id", (req, res) => {
       JSON_OBJECT(
           'task_id', t.task_id,
           'task_name', t.task_name,
+          'description', t.description,
           'allocated_time', t.allocated_time,
           'module_id',t.module_id
       )

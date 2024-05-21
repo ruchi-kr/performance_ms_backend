@@ -11,7 +11,6 @@ const GetProjectPlan = async (req, res) => {
     sortOrder = "ASC",
   } = req.query;
   const { project_id } = req.params;
-  console.log("projetc_id", project_id);
   const offset = (Number(page) - 1) * Number(pageSize);
   let projectDetails = [];
   const paginatedQuery = `SELECT 

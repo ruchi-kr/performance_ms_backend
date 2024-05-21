@@ -76,7 +76,7 @@ GROUP BY
 };
 const GetModuleTasks = async (req, res) => {
   const { module_id } = req.params;
-  console.log("module_id", module_id);
+  console.log("module_id==================", module_id);
   let {
     search = "",
     page = 1,
@@ -138,13 +138,8 @@ const AddModuleTasks = async (req, res) => {
     task_name,
     allocated_time,
     stage,
-    fullstack,
-    frontend,
-    backend,
-    design,
-    qa,
-    pm,
-    special,
+
+    description,
   } = req.body;
 
   console.log("{ module_name, project_id, from_date, to_date, status,stage }", {
@@ -152,39 +147,13 @@ const AddModuleTasks = async (req, res) => {
     task_name,
     allocated_time,
     stage,
-    fullstack,
-    frontend,
-    backend,
-    design,
-    qa,
-    pm,
-    special,
   });
 
   const query =
-    "INSERT INTO task_master ( module_id,task_name,allocated_time,stage,fullstack_count,fullstack_days,frontend_count,frontend_days,backend_count,backend_days,design_count,design_days,qa_count,qa_days,pm_count,pm_days,special_count,special_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    "INSERT INTO task_master ( module_id,task_name,allocated_time,stage,description) VALUES (?,?,?,?,?)";
   connection.query(
     query,
-    [
-      module_id,
-      task_name,
-      allocated_time,
-      stage,
-      fullstack.count,
-      fullstack.days,
-      frontend.count,
-      frontend.days,
-      backend.count,
-      backend.days,
-      design.count,
-      design.days,
-      qa.count,
-      qa.days,
-      pm.count,
-      pm.days,
-      special.count,
-      special.days,
-    ],
+    [module_id, task_name, allocated_time, stage, description],
     (err, results) => {
       if (err) {
         console.log(err);
@@ -199,45 +168,14 @@ const AddModuleTasks = async (req, res) => {
 const EditModuleTask = async (req, res) => {
   const { task_id } = req.params;
   console.log("route accessed");
-  const {
-    module_id,
-    task_name,
-    allocated_time,
-    fullstack,
-    frontend,
-    backend,
-    design,
-    qa,
-    pm,
-    special,
-  } = req.body;
+  const { module_id, task_name, allocated_time, description } = req.body;
 
   const query =
-    "UPDATE task_master SET module_id=?,task_name=?,allocated_time=? fullstack_count=?,fullstack_days=?,frontend_count=?,frontend_days=?,backend_count=?,backend_days=?,design_count=?,design_days=?,qa_count=?,qa_days=?,pm_count=?,pm_days=?,special_count=?,special_days=? WHERE task_id=? ";
+    "UPDATE task_master SET module_id=?,task_name=?,allocated_time=? ,description=? WHERE task_id=? ";
   try {
     connection.query(
       query,
-      [
-        module_id,
-        task_name,
-        allocated_time,
-        fullstack.count,
-        fullstack.days,
-        frontend.count,
-        frontend.days,
-        backend.count,
-        backend.days,
-        design.count,
-        design.days,
-        qa.count,
-        qa.days,
-        pm.count,
-        pm.days,
-        special.count,
-        special.days,
-        ,
-        task_id,
-      ],
+      [module_id, task_name, allocated_time, description, task_id],
       (err, results) => {
         if (err) console.log(err);
       }
