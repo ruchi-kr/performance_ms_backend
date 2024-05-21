@@ -38,3 +38,29 @@ connection.connect((err) => {
 });
 
 module.exports = connection;
+
+// const mysql = require("mysql");
+
+// const connection = mysql.createConnection({
+//   host: "62.72.28.242",
+//   port: "65002",
+//   user:"u767023103_intilqpq_icar3",
+//   password: "&H(hE$=BL9!D",
+//   database: "u767023103_icar3",
+// });
+
+// connection.connect((err) => {
+//   if (err) throw err;
+//   console.log("Connected to MySQL database");
+//   connection.query("SET GLOBAL time_zone = '+00:00';", (err, results) => {
+//     if (err) {
+//       console.log("error connecting to database", err);
+//     } else {
+//       console.log("Time zone set GLOBAL time_zone = '+00:00'");
+//     }
+//   });
+// });
+
+// module.exports = connection;
+
+
