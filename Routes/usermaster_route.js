@@ -19,25 +19,25 @@ const connection = require("../db");
 // adding user using bcrypt
 
 router.post("/api/admin/addUser", async (req, res) => {
-  const { username, role, status, user_type, password, employee_id } = req.body;
+  const { email_id, role, status, user_type, password, employee_id } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const selectQuery = "SELECT * FROM user_master WHERE username = ?";
-    connection.query(selectQuery, [username], (err, results) => {
+    const selectQuery = "SELECT * FROM user_master WHERE email_id = ?";
+    connection.query(selectQuery, [email_id], (err, results) => {
       if (err) {
         console.log(err);
         return res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
       } else if (results.length > 0) {
-        return res.status(400).json({ error: "username already exists." });
+        return res.status(400).json({ error: "email already exists." });
       } else {
         const Insertquery =
-          "INSERT INTO user_master (username,role, status, user_type, password, hashed_password, employee_id) VALUES (?, ?, ?, ?, ?, ?,?)";
+          "INSERT INTO user_master (email_id,role, status, user_type, password, hashed_password, employee_id) VALUES (?, ?, ?, ?, ?, ?,?)";
         const values = [
-          username,
+          email_id,
           role,
           status,
           user_type,
@@ -79,7 +79,7 @@ router.get("/api/admin/getUsers", (req, res) => {
 
   const offset = Number((page - 1) * pageSize);
 
-  const query = `SELECT um.*,em.name as employee_name FROM user_master as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id WHERE um.username LIKE '%${name}%' OR um.email_id LIKE '%${email}%'  OR um.role LIKE '%${role}%' ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+  const query = `SELECT um.*,em.name as employee_name FROM user_master as um LEFT JOIN employee_master as em On em.employee_id = um.employee_id WHERE  um.email_id LIKE '%${email}%'  OR um.role LIKE '%${role}%' ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
   connection.query(query, [parseInt(pageSize), offset], (err, results) => {
     if (err) {
       console.log(err);
@@ -89,7 +89,7 @@ router.get("/api/admin/getUsers", (req, res) => {
     } else {
       users = results;
       connection.query(
-        `SELECT COUNT(*) AS total FROM user_master WHERE username LIKE '%${name}%'`,
+        `SELECT COUNT(*) AS total FROM user_master WHERE email_id LIKE '%${name}%'`,
         [`${name}`],
         (err, results) => {
           if (err) console.log(err);
@@ -125,7 +125,7 @@ router.post("/api/admin/editUser/:user_id", (req, res) => {
 
   const fetchQuery = "SELECT * FROM user_master WHERE user_id=?";
   const updateQuery =
-    "UPDATE user_master SET username=?,email_id=?,role=?, status =?, user_type=?, password=? WHERE user_id=?";
+    "UPDATE user_master SET email_id=?, role=?, status =?, user_type=?, password=? WHERE user_id=?";
 
   // Fetch project by ID
   connection.query(fetchQuery, [UserId], (fetchErr, fetchResults) => {
@@ -138,12 +138,12 @@ router.post("/api/admin/editUser/:user_id", (req, res) => {
     }
 
     const existingUser = fetchResults[0];
-    const { username, email_id, role, status, user_type, password } = req.body;
+    const {  email_id, role, status, user_type, password } = req.body;
 
     // Update project data
     connection.query(
       updateQuery,
-      [username, email_id, role, status, user_type, password, UserId],
+      [email_id, role, status, user_type, password, UserId],
       (updateErr, updateResults) => {
         if (updateErr) {
           return res.status(500).send("Error updating user");
