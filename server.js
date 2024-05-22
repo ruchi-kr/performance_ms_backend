@@ -2,10 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const mysql = require("mysql");
-
+require("dotenv").config();
 const app = express();
 const port = 8000;
-
+console.log("dot env", process.env.HOST);
 app.use(cors());
 app.use(express.json());
 
@@ -20,6 +20,7 @@ const getCurrentTimeStampRoutes = require("./Routes/currentTimeRouter");
 const managerRemarksController = require("./Routes/managerRemarksController");
 const projectPlanRoutes = require("./Routes/projectPlanRoutes");
 const moduleTasksRoutes = require("./Routes/moduleTasksRouter");
+const systemSettingsRoutes = require("./Routes/systemSettingsRouter");
 // app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Auth_route_email"));
 app.use(require("./Routes/Employeemaster_route"));
@@ -40,7 +41,7 @@ app.use("/api", getCurrentTimeStampRoutes);
 app.use("/api", managerRemarksController);
 app.use("/api", projectPlanRoutes);
 app.use("/api", moduleTasksRoutes);
-
+app.use("/api", systemSettingsRoutes);
 app.use(require("./Routes/employee_report_route"));
 app.use(require("./Routes/module_master_route"));
 app.use(require("./Routes/job_role_master_route"));

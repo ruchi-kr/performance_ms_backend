@@ -128,7 +128,7 @@ router.get("/api/admin/getEmployees", (req, res) => {
 
 router.get("/api/admin/getEmployeeslist", (req, res) => {
   const query =
-    "SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id";
+    "SELECT u.*,jrm.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master AS m ON u.manager_id = m.employee_id LEFT JOIN job_role_master AS jrm ON u .job_id = jrm.job_id";
   connection.query(query, (err, results) => {
     if (err) {
       console.log(err);
