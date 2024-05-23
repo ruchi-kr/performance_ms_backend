@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
+const protectedRouteonlytoken = require("../middleware/protectedResource");
+const protectedRoute = require("../middleware/protectedResourceManager");
+
 const {
-  GetManagerRemarks,
+  GetManagerRemarks,       //E && M
   AddManagerRemarks,
   EditManagerRemarks,
   DeleteManagerRemarks,
@@ -10,13 +13,13 @@ const {
 
 router
   .route("/employee/remark/:reporting_manager_id/:employee_id")
-  .get(GetManagerRemarks);
+  .get(protectedRouteonlytoken,GetManagerRemarks);
 router
   .route("/employee/remark/:reporting_manager_id/:employee_id")
-  .post(AddManagerRemarks);
+  .post(protectedRoute,AddManagerRemarks);
 router
   .route("/employee/remark/:reporting_manager_id/:employee_id   /:remark_id")
-  .patch(EditManagerRemarks)
-  .delete(DeleteManagerRemarks);
+  .patch(protectedRoute,EditManagerRemarks)
+  .delete(protectedRoute,DeleteManagerRemarks);
 
 module.exports = router;

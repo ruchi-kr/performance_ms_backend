@@ -29,17 +29,17 @@ app.use(require("./Routes/projectmaster_route"));
 app.use(require("./Routes/dashdata_route"));
 app.use(require("./Routes/remarkRoutes"));
 //Teams routes
-app.use("/api/user", teamsRoutes);
-app.use("/api", remarkRoutes);
-app.use("/api", dailReportViewManagerRoutes);
+app.use("/api/user", teamsRoutes);   //MANAGER
+app.use("/api", remarkRoutes);       //M
+app.use("/api", dailReportViewManagerRoutes);     //M
 app.use(require("./Routes/employee_route"));
-app.use("/api", projectReportRoutes);
-app.use("/api", employeeRoportToManagerRoutes);
-app.use("/api", projectDetailedReportToManagerRoutes);
-app.use("/api", getCurrentTimeStampRoutes);
-app.use("/api", managerRemarksController);
-app.use("/api", projectPlanRoutes);
-app.use("/api", moduleTasksRoutes);
+app.use("/api", projectReportRoutes);           //M
+app.use("/api", employeeRoportToManagerRoutes);   //M
+app.use("/api", projectDetailedReportToManagerRoutes);  //M
+app.use("/api", getCurrentTimeStampRoutes);  
+app.use("/api", managerRemarksController);  //M
+app.use("/api", projectPlanRoutes);    //A && M
+app.use("/api", moduleTasksRoutes);    // ALL
 
 app.use(require("./Routes/employee_report_route"));
 app.use(require("./Routes/module_master_route"));

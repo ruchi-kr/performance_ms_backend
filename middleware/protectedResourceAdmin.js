@@ -6,7 +6,7 @@ const connection =require("../db");
 
 module.exports = (req, res, next)=>{
   const {authorization} = req.headers;
-  console.log("auth header", authorization);
+  console.log("auth header for admin", authorization);
   if (authorization) {
     const token = authorization.replace("Bearer ", "");
 
@@ -14,15 +14,19 @@ module.exports = (req, res, next)=>{
       if (err) {
         return res.status(StatusCodes.FORBIDDEN).send("Bad access token");
       }
-      console.log("token verified");
-      console.log("user details after token verification",user)
-      req.user = user;
-      next();
+      console.log("token verified for admin");
+      console.log("admin details after token verification",user)
+     
        // Check user_type and role
-       
+       if (user.user_type == "1") {
+        req.user = user;
+        next();
+      } else {
+        return res.status(StatusCodes.FORBIDDEN).send({error:"Access denied"});
+      }
     });
   } else {
-    return res.status(StatusCodes.UNAUTHORIZED).send("Invalid jwt token");
+    return res.status(StatusCodes.UNAUTHORIZED).send({error:"Invalid jwt token"});
   }
 }
 

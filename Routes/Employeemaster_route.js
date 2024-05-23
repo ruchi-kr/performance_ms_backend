@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
-
+const protectedRoute = require("../middleware/protectedResourceAdmin");
+const protectedRouteonlytoken = require("../middleware/protectedResource");
 // api for employee CRUD
 
 // CREATE
 
-//   });
-router.post("/api/admin/addEmployee", (req, res) => {
+router.post("/api/admin/addEmployee",protectedRoute, (req, res) => {
   const {
     name,
     manager_id,
@@ -59,7 +59,7 @@ router.post("/api/admin/addEmployee", (req, res) => {
 });
 
 // GET
-router.get("/api/admin/getEmployees", (req, res) => {
+router.get("/api/admin/getEmployees",protectedRoute, (req, res) => {
   const {
     page = 1,
     pageSize = 10,
@@ -126,7 +126,7 @@ router.get("/api/admin/getEmployees", (req, res) => {
   });
 });
 
-router.get("/api/admin/getEmployeeslist", (req, res) => {
+router.get("/api/admin/getEmployeeslist",protectedRouteonlytoken, (req, res) => {
   const query =
     "SELECT u.*, m.employee_id AS manager_id, m.name AS manager_name, m.mobile_no AS manager_mobile_no, m.email AS manager_email,m.designation_id AS manager_designation_id FROM employee_master u LEFT JOIN employee_master m ON u.manager_id = m.employee_id";
   connection.query(query, (err, results) => {
@@ -142,7 +142,7 @@ router.get("/api/admin/getEmployeeslist", (req, res) => {
 });
 
 // EDIT
-router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
+router.post("/api/admin/editEmployee/:employee_id",protectedRoute, (req, res) => {
   const employeeId = req.params.employee_id;
 
   if (!employeeId) {
@@ -226,7 +226,7 @@ router.post("/api/admin/editEmployee/:employee_id", (req, res) => {
   });
 });
 // DELETE
-router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
+router.delete("/api/admin/deleteEmployee/:employee_id",protectedRoute, (req, res) => {
   const EmployeeId = req.params.employee_id;
   try {
     const query = "DELETE FROM employee_master WHERE employee_id=?";
@@ -246,7 +246,7 @@ router.delete("/api/admin/deleteEmployee/:employee_id", (req, res) => {
 });
 
 // get list of all employee
-router.get("/api/admin/getEmployeesList", (req, res) => {
+router.get("/api/admin/getEmployeesList",protectedRouteonlytoken, (req, res) => {
   const query = "SELECT * FROM employee_master ";
 
   connection.query(query, (err, results) => {
@@ -262,7 +262,7 @@ router.get("/api/admin/getEmployeesList", (req, res) => {
 });
 
 // for creating credentials employee list
-router.get("/api/admin/EmployeesList", (req, res) => {
+router.get("/api/admin/EmployeesList",protectedRoute, (req, res) => {
   const query = `SELECT em.*
   FROM employee_master em
   LEFT JOIN user_master um ON em.employee_id = um.employee_id

@@ -3,6 +3,7 @@ const router = express.Router();
 const mysql = require("mysql");
 const bcrypt = require("bcryptjs");
 const connection = require("../db");
+const protectedRoute = require("../middleware/protectedResourceAdmin");
 
 // API FOR USER CRUD
 
@@ -18,7 +19,7 @@ const connection = require("../db");
 
 // adding user using bcrypt
 
-router.post("/api/admin/addUser", async (req, res) => {
+router.post("/api/admin/addUser", protectedRoute, async (req, res) => {
   const { email_id, role, status, user_type, password, employee_id } = req.body;
 
   try {
@@ -66,7 +67,7 @@ router.post("/api/admin/addUser", async (req, res) => {
 
 // GET
 // with pagination
-router.get("/api/admin/getUsers", (req, res) => {
+router.get("/api/admin/getUsers",  protectedRoute, (req, res) => {
   const {
     page = 1,
     pageSize = 10,
@@ -173,7 +174,7 @@ router.get("/api/admin/getUsers", (req, res) => {
 // });
 
 // edit with hashed password
-router.post("/api/admin/editUser/:user_id", async (req, res) => {
+router.post("/api/admin/editUser/:user_id", protectedRoute, async (req, res) => {
   const UserId = req.params.user_id;
 
   if (!UserId) {
@@ -242,7 +243,7 @@ router.post("/api/admin/editUser/:user_id", async (req, res) => {
 
 
 // DELETE
-router.delete("/api/admin/deleteUser/:user_id", (req, res) => {
+router.delete("/api/admin/deleteUser/:user_id", protectedRoute, (req, res) => {
   const UserId = req.params.user_id;
   const query = "DELETE FROM user_master WHERE user_id=?";
   connection.query(query, [UserId], (err, results) => {

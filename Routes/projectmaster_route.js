@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
-const protectedRoute = require("../middleware/protectedResource");
+const protectedRoute = require("../middleware/protectedResourceAdmin");
 const connection = require("../db");
 const asyncConnection = require("../db2");
 const { StatusCodes } = require("http-status-codes");
+const protectedRouteonlytoken = require("../middleware/protectedResource");
 // API FOR PROJECT CRUD
 
 // CREATE project
@@ -50,7 +51,7 @@ router.post("/api/admin/addProject", protectedRoute, async(req, res) => {
 
 // Get project
 // with pagination
-router.get("/api/admin/getallProject", (req, res) => {
+router.get("/api/admin/getallProject",protectedRoute, (req, res) => {
   const {
     page = 1,
     pageSize = 10,
@@ -103,7 +104,7 @@ router.get("/api/admin/getallProject", (req, res) => {
   );
 });
 // without pagination
-router.get("/api/admin/getProjects", (req, res) => {
+router.get("/api/admin/getProjects",protectedRouteonlytoken, (req, res) => {
   // const query = 'SELECT * FROM project_master ';
   try {
     const query =
@@ -123,7 +124,7 @@ router.get("/api/admin/getProjects", (req, res) => {
   }
 });
 
-router.get("/api/admin/getProjects/:project_id", async (req, res) => {
+router.get("/api/admin/getProjects/:project_id",protectedRouteonlytoken, async (req, res) => {
   try {
     const projectId = req.params.project_id;
     const query = "SELECT * FROM project_master WHERE project_id=?";
