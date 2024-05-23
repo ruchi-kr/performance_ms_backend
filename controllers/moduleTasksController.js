@@ -138,7 +138,9 @@ const AddModuleTasks = async (req, res) => {
     task_name,
     allocated_time,
     stage,
-
+    count,
+    days,
+    job_role_id,
     description,
   } = req.body;
 
@@ -150,10 +152,19 @@ const AddModuleTasks = async (req, res) => {
   });
 
   const query =
-    "INSERT INTO task_master ( module_id,task_name,allocated_time,stage,description) VALUES (?,?,?,?,?)";
+    "INSERT INTO task_master ( module_id,task_name,allocated_time,stage,description,count,days,job_id) VALUES (?,?,?,?,?,?,?,?)";
   connection.query(
     query,
-    [module_id, task_name, allocated_time, stage, description],
+    [
+      module_id,
+      task_name,
+      allocated_time,
+      stage,
+      description,
+      count,
+      days,
+      job_role_id,
+    ],
     (err, results) => {
       if (err) {
         console.log(err);
@@ -168,14 +179,31 @@ const AddModuleTasks = async (req, res) => {
 const EditModuleTask = async (req, res) => {
   const { task_id } = req.params;
   console.log("route accessed");
-  const { module_id, task_name, allocated_time, description } = req.body;
+  const {
+    module_id,
+    task_name,
+    allocated_time,
+    description,
+    count,
+    days,
+    job_role_id,
+  } = req.body;
 
   const query =
-    "UPDATE task_master SET module_id=?,task_name=?,allocated_time=? ,description=? WHERE task_id=? ";
+    "UPDATE task_master SET module_id=?,task_name=?,allocated_time=? ,description=?,count=?,days=?,job_id=? WHERE task_id=? ";
   try {
     connection.query(
       query,
-      [module_id, task_name, allocated_time, description, task_id],
+      [
+        module_id,
+        task_name,
+        allocated_time,
+        description,
+        count,
+        days,
+        job_role_id,
+        task_id,
+      ],
       (err, results) => {
         if (err) console.log(err);
       }

@@ -99,6 +99,10 @@ router.get("/api/admin/getAllModule/:project_id",protectedRouteonlytoken, (req, 
           'task_name', t.task_name,
           'description', t.description,
           'allocated_time', t.allocated_time,
+          'job_id', t.job_id,
+          'count', t.count,
+          'days', t.days,
+          'job_role', jrm.job_role_name,
           'module_id',t.module_id
       )
   ), ']') AS tasks
@@ -106,6 +110,8 @@ FROM
   module_master m
 LEFT JOIN 
   task_master t ON m.module_id = t.module_id
+LEFT JOIN 
+  job_role_master AS jrm ON jrm.job_id = t.job_id
 WHERE 
   m.project_id = ?
 AND
