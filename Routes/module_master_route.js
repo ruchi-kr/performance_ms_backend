@@ -4,9 +4,12 @@ const mysql = require("mysql");
 const connection = require("../db");
 const { StatusCodes } = require("http-status-codes");
 
+const protectedRoute = require("../middleware/protectedResourceM+A");
+const protectedRouteonlytoken = require("../middleware/protectedResource");
+
 // API FOR Module Master CRUD
 // CREATE module
-router.post("/api/admin/addModule", (req, res) => {
+router.post("/api/admin/addModule", protectedRoute,(req, res) => {
   const { module_name, project_id, from_date, to_date, status, stage } =
     req.body;
   console.log("{ module_name, project_id, from_date, to_date, status,stage }", {
@@ -69,7 +72,7 @@ router.post("/api/admin/addModule", (req, res) => {
 });
 
 // Get Module
-router.get("/api/admin/getAllModule/:project_id", (req, res) => {
+router.get("/api/admin/getAllModule/:project_id",protectedRouteonlytoken, (req, res) => {
   let {
     search,
     page = 1,
@@ -190,7 +193,7 @@ GROUP BY
 });
 
 // Get Module for project
-router.get("/api/admin/getModule/:project_id", (req, res) => {
+router.get("/api/admin/getModule/:project_id",protectedRouteonlytoken, (req, res) => {
   const { project_id } = req.params;
   console.log("params", project_id);
   let {
@@ -247,7 +250,7 @@ router.get("/api/admin/getModule/:project_id", (req, res) => {
 });
 
 // Edit module
-router.patch("/api/admin/editModule/:module_id", (req, res) => {
+router.patch("/api/admin/editModule/:module_id",protectedRoute, (req, res) => {
   const { module_id } = req.params;
 
   const { project_id, module_name, from_date, to_date, status } = req.body;
@@ -275,7 +278,7 @@ router.patch("/api/admin/editModule/:module_id", (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "record edited" });
 });
 
-// Edit module
+// delete module
 // router.post("/api/admin/editModule/:project_id", (req, res) => {
 //   const { project_id } = req.params;
 //   const { module_name } = req.body;
@@ -356,7 +359,7 @@ router.patch("/api/admin/editModule/:module_id", (req, res) => {
 // });
 
 // delete module
-router.delete("/api/admin/deleteModule/:module_id", (req, res) => {
+router.delete("/api/admin/deleteModule/:module_id",protectedRoute, (req, res) => {
   const { module_id } = req.params;
 
   // Check if the module is assigned to any employee

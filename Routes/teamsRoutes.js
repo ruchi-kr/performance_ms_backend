@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const protectedRoute = require("../middleware/protectedResourceManager");
 
 const {
   GetAllTeams,
@@ -11,12 +12,12 @@ const {
 
 router
   .route("/project/teams/:reporting_manager_id")
-  .get(GetAllTeams)
-  .post(AddTeam);
+  .get(protectedRoute,GetAllTeams)
+  .post(protectedRoute,AddTeam);
 router
   .route("/project/teams/:team_id")
-  .get(GetTeam)
-  .patch(EditTeam)
-  .delete(DeleteTeam);
+  .get(protectedRoute,GetTeam)
+  .patch(protectedRoute,EditTeam)
+  .delete(protectedRoute,DeleteTeam);
 
 module.exports = router;

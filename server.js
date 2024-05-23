@@ -30,9 +30,9 @@ app.use(require("./Routes/projectmaster_route"));
 app.use(require("./Routes/dashdata_route"));
 app.use(require("./Routes/remarkRoutes"));
 //Teams routes
-app.use("/api/user", teamsRoutes);
-app.use("/api", remarkRoutes);
-app.use("/api", dailReportViewManagerRoutes);
+app.use("/api/user", teamsRoutes);   //MANAGER
+app.use("/api", remarkRoutes);       //M
+app.use("/api", dailReportViewManagerRoutes);     //M
 app.use(require("./Routes/employee_route"));
 app.use("/api", projectReportRoutes);
 app.use("/api", employeeRoportToManagerRoutes);

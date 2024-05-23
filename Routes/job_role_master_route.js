@@ -3,12 +3,14 @@ const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
 const { StatusCodes } = require("http-status-codes");
+const protectedRoute = require("../middleware/protectedResourceAdmin");
+const protectedRouteonlytoken = require("../middleware/protectedResource");
 
 // API FOR Job Role CRUD
 
 
 // CREATE job role
-router.post("/api/admin/addJobRole", (req, res) => {
+router.post("/api/admin/addJobRole", protectedRoute, (req, res) => {
   const { job_role_name } = req.body;
   const selectQuery = "SELECT * FROM job_role_master WHERE job_role_name = ?";
   connection.query(selectQuery, [job_role_name], (err, results) => {
@@ -37,7 +39,7 @@ router.post("/api/admin/addJobRole", (req, res) => {
 });
 
 // Get job role
-router.get("/api/admin/getAllJobRole", (req, res) => {
+router.get("/api/admin/getAllJobRole", protectedRoute, (req, res) => {
   const {
     page = 1,
     pageSize = 10,
@@ -86,7 +88,7 @@ router.get("/api/admin/getAllJobRole", (req, res) => {
 });
 
 // Edit job role
-router.post("/api/admin/editJobRole/:job_id", (req, res) => {
+router.post("/api/admin/editJobRole/:job_id", protectedRoute, (req, res) => {
   const JobRoleId = req.params.job_id;
 
   if (!JobRoleId) {
@@ -156,8 +158,7 @@ router.post("/api/admin/editJobRole/:job_id", (req, res) => {
 });
 
 // Delete job role
-
-router.delete("/api/admin/deleteJobRole/:job_id", (req, res) => {
+router.delete("/api/admin/deleteJobRole/:job_id",  protectedRoute,(req, res) => {
   const JobRoleId = req.params.job_id;
 
   // Check if the job role is assigned to any employee
@@ -181,7 +182,7 @@ router.delete("/api/admin/deleteJobRole/:job_id", (req, res) => {
 });
 
 // get list of all job role
-router.get("/api/admin/getJobRoleList", (req, res) => {
+router.get("/api/admin/getJobRoleList", protectedRouteonlytoken, (req, res) => {
   const query = "SELECT * FROM job_role_master";
   // const query ='SELECT rmm.*,em.name as manager_name FROM `reporting_manager_master` as rmm LEFT JOIN employee_master as em On rmm.employee_id = em.employee_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
 

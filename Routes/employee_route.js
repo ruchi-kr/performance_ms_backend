@@ -6,10 +6,11 @@ const dayjs = require("dayjs");
 
 const utc = require("dayjs/plugin/utc");
 const moment = require("moment");
+const protectedRoute = require("../middleware/protectedResourceEmployee");
 // API FOR CRUD EMPLOYEE
 
 // CREATE
-router.post("/api/user/addTask", (req, res) => {
+router.post("/api/user/addTask",protectedRoute, (req, res) => {
   const {
     project_id,
     user_id,
@@ -62,7 +63,7 @@ router.post("/api/user/addTask", (req, res) => {
 });
 
 // GET
-router.get("/api/user/getTasks/:employee_id", (req, res) => {
+router.get("/api/user/getTasks/:employee_id",protectedRoute, (req, res) => {
   const employee_id = req.params.employee_id;
   // const query =
     // "SELECT * FROM employee WHERE user_id= ? AND ((DATE(created_at)=CURRENT_DATE() OR status = 'inprocess' OR status = 'notstarted') OR (DATE(actual_end_date)=CURRENT_DATE() AND status = 'completed'))";
@@ -94,8 +95,7 @@ router.get("/api/user/getTasks/:employee_id", (req, res) => {
 });
 
 // EDIT
-// UPDATE
-router.put("/api/user/updateTask/:taskId", (req, res) => {
+router.put("/api/user/updateTask/:taskId", protectedRoute, (req, res) => {
   const taskId = req.params.taskId;
   const {
     user_id,
@@ -151,7 +151,7 @@ router.put("/api/user/updateTask/:taskId", (req, res) => {
 });
 
 // DELETE
-router.delete("/api/user/deleteTask/:taskId", (req, res) => {
+router.delete("/api/user/deleteTask/:taskId", protectedRoute, (req, res) => {
   const taskId = req.params.taskId;
   const query = "DELETE FROM employee WHERE id = ?";
   connection.query(query, [taskId], (err, results) => {

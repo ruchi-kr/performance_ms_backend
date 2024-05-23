@@ -39,7 +39,7 @@ router.post("/api/login", (req, res) => {
         .compare(password, user.hashed_password)
         .then((didMatch) => {
           if (didMatch) {
-            const jwtToken = jwt.sign({ email_id: user.email_id }, JWT_SECRET, {
+            const jwtToken = jwt.sign({ email_id: user.email_id, user_type: user.user_type, role: user.role }, JWT_SECRET, {
               expiresIn: "1d",
             });
             var employeeDetails = {};

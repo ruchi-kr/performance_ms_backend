@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
+const protectedRoute = require("../middleware/protectedResourceEmployee");
 
 // for project-wise report
-router.get("/api/user/getReportspw/:employee_id", (req, res) => {
+router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
   const employee_id = req.params.employee_id;
   const { page, pageSize, name = "", fromDate = "", toDate = "" } = req.query;
   console.clear();
@@ -118,7 +119,7 @@ router.get("/api/user/getReportspw/:employee_id", (req, res) => {
 });
 
 // for date - wise report
-router.get("/api/user/getReportsdw/:employee_id", (req, res) => {
+router.get("/api/user/getReportsdw/:employee_id",protectedRoute, (req, res) => {
   const employee_id = req.params.employee_id;
 
   const { page, pageSize, fromDate, toDate } = req.query;

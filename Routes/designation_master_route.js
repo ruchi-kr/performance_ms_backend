@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const connection = require("../db");
-
+const protectedRoute = require("../middleware/protectedResourceAdmin");
+const protectRouteonlytoken = require("../middleware/protectedResource");
 // API FOR Designation CRUD
 
 // CREATE designation
-router.post("/api/admin/addDesignation", (req, res) => {
+router.post("/api/admin/addDesignation", protectedRoute, (req, res) => {
   const { designation_name } = req.body;
   const selectQuery = "SELECT * FROM designation_master WHERE designation_name = ?";
   connection.query(selectQuery, [designation_name], (err, results) => {
@@ -33,7 +34,7 @@ router.post("/api/admin/addDesignation", (req, res) => {
 });
 
 // Get designation
-router.get("/api/admin/getAllDesignation", (req, res) => {
+router.get("/api/admin/getAllDesignation", protectedRoute, (req, res) => {
   const {
     page = 1,
     pageSize = 10,
@@ -82,7 +83,7 @@ router.get("/api/admin/getAllDesignation", (req, res) => {
 });
 
 // Edit designation
-router.post("/api/admin/editDesignation/:designation_id", (req, res) => {
+router.post("/api/admin/editDesignation/:designation_id",protectedRoute, (req, res) => {
   const DesignationId = req.params.designation_id;
 
   if (!DesignationId) {
@@ -149,7 +150,8 @@ router.post("/api/admin/editDesignation/:designation_id", (req, res) => {
   });
 });
 
-router.delete("/api/admin/deleteDesignation/:designation_id", (req, res) => {
+// delete designation
+router.delete("/api/admin/deleteDesignation/:designation_id",protectedRoute, (req, res) => {
   const DesignationId = req.params.designation_id;
 
   // Check if the designation is assigned to any employee
@@ -178,7 +180,7 @@ router.delete("/api/admin/deleteDesignation/:designation_id", (req, res) => {
 });
 
 // get list of all designation
-router.get("/api/admin/getDesignationList", (req, res) => {
+router.get("/api/admin/getDesignationList", protectRouteonlytoken, (req, res) => {
   const query = "SELECT * FROM designation_master";
   // const query ='SELECT rmm.*,em.name as manager_name FROM `reporting_manager_master` as rmm LEFT JOIN employee_master as em On rmm.employee_id = em.employee_id';    // JOIN user_master as us ON em.employee_id = us.employee_id
 
