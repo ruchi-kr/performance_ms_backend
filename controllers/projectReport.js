@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
+const asyncConnection = require("../db2");
 
 const ViewProjectReport = (req, res) => {
   const { reporting_manager_id } = req.params;
