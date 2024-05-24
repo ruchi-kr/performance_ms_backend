@@ -10,7 +10,7 @@ const protectedRoute = require("../middleware/protectedResourceEmployee");
 // API FOR CRUD EMPLOYEE
 
 // CREATE
-router.post("/api/user/addTask",protectedRoute, (req, res) => {
+router.post("/api/user/addTask", protectedRoute, (req, res) => {
   const {
     project_id,
     user_id,
@@ -26,52 +26,76 @@ router.post("/api/user/addTask",protectedRoute, (req, res) => {
     task_id,
     adhoc,
   } = req.body;
+
+  // to check same task is not created in the same day
+  const today = moment().format("YYYY-MM-DD");
+  console.log("today date",today);
   let actual_end_date = null;
   if (status === "completed") {
     actual_end_date = moment.utc().format();
   }
-  const query =
-    "INSERT INTO employee ( project_id,module_id,employee_id,manager_id,user_id, allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc,task_id ) VALUES (?,?,?,?,?, ?, ?,?,?,?,?,?,?)";
+  //  AND DATE(created_at) = ${today}
   connection.query(
-    query,
-    [
-      project_id,
-      module_id,
-      employee_id,
-      manager_id,
-      user_id,    
-      allocated_time,
-      actual_time,
-      task_percent,
-      status,
-      remarks,
-      actual_end_date,
-      adhoc,
-      task_id,
-    ],
+    `SELECT * FROM employee WHERE task_id = ? AND DATE(created_at)= ?`,
+    [task_id, today],
     (err, results) => {
       if (err) {
         console.log(err);
         res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
+      } else if (results.length > 0) {
+        return res
+          .status(400)
+          .json({ error: "Task already exists for the same date." });
       } else {
-        res.status(200).send("Task Added Successfully");
+        const query =
+          "INSERT INTO employee ( project_id,module_id,employee_id,manager_id,user_id, allocated_time, actual_time,task_percent,status,remarks,actual_end_date,adhoc,task_id ) VALUES (?,?,?,?,?, ?, ?,?,?,?,?,?,?)";
+        connection.query(
+          query,
+          [
+            project_id,
+            module_id,
+            employee_id,
+            manager_id,
+            user_id,
+            allocated_time,
+            actual_time,
+            task_percent,
+            status,
+            remarks,
+            actual_end_date,
+            adhoc,
+            task_id,
+          ],
+          (err, results) => {
+            if (err) {
+              console.log(err);
+              res
+                .status(500)
+                .json({
+                  error: "An error occurred while processing your request.",
+                });
+            } else {
+              res.status(200).send("Task Added Successfully");
+            }
+          }
+        );
       }
     }
   );
 });
 
 // GET
-router.get("/api/user/getTasks/:employee_id",protectedRoute, (req, res) => {
+router.get("/api/user/getTasks/:employee_id", protectedRoute, (req, res) => {
   const employee_id = req.params.employee_id;
   // const query =
-    // "SELECT * FROM employee WHERE user_id= ? AND ((DATE(created_at)=CURRENT_DATE() OR status = 'inprocess' OR status = 'notstarted') OR (DATE(actual_end_date)=CURRENT_DATE() AND status = 'completed'))";
- 
-    // const query =
+  // "SELECT * FROM employee WHERE user_id= ? AND ((DATE(created_at)=CURRENT_DATE() OR status = 'inprocess' OR status = 'notstarted') OR (DATE(actual_end_date)=CURRENT_DATE() AND status = 'completed'))";
+
+  // const query =
   //   "SELECT employee.* , em.* FROM employee JOIN user_master AS um ON um.user_id = employee.user_id JOIN employee_master AS em ON em.employee_id = um.employee_id WHERE employee.employee_id= ?";
-  
-  const query= `SELECT e.*, t.task_name, m.module_name
+
+  const query = `SELECT e.*, t.task_name, m.module_name
   FROM employee e
   LEFT JOIN task_master t ON e.task_id = t.task_id
   LEFT JOIN module_master m ON e.module_id = m.module_id
@@ -81,7 +105,7 @@ router.get("/api/user/getTasks/:employee_id",protectedRoute, (req, res) => {
       OR 
       (DATE(e.actual_end_date) = CURRENT_DATE() AND e.status = 'completed')
   )`;
-  
+
   connection.query(query, [employee_id], (err, results) => {
     if (err) {
       console.log(err);
@@ -141,10 +165,10 @@ router.put("/api/user/updateTask/:taskId", protectedRoute, (req, res) => {
         res
           .status(500)
           .json({ error: "An error occurred while processing your request." });
-      }else if (results.affectedRows === 0){
+      } else if (results.affectedRows === 0) {
         res.status(400).send({ msg: "Add values to updated." });
       } else {
-        res.status(200).send({ msg: "Task Updated Successfully"});
+        res.status(200).send({ msg: "Task Updated Successfully" });
       }
     }
   );
@@ -161,7 +185,7 @@ router.delete("/api/user/deleteTask/:taskId", protectedRoute, (req, res) => {
         .status(500)
         .json({ error: "An error occurred while processing your request." });
     } else {
-      res.status(200).send({ msg: "Task Deleted Successfully"});
+      res.status(200).send({ msg: "Task Deleted Successfully" });
     }
   });
 });
