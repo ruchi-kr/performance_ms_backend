@@ -34,6 +34,8 @@ const ViewProjectReport = (req, res) => {
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
                 ', "project_name":"', pm.project_name, 
+                '", "module_id":', mm.module_id, 
+                ', "module_name":"', mm.module_name, 
                 '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 
                 '"}'
             ) SEPARATOR ', '
@@ -46,6 +48,8 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 LEFT JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    module_master AS mm ON e.module_id = mm.module_id
 LEFT JOIN 
     task_master AS tm ON tm.task_id = e.task_id
 WHERE 
@@ -78,6 +82,8 @@ GROUP BY
                 ', "status":"', e.status, 
                 '", "project_id":', e.project_id, 
                 ', "project_name":"', pm.project_name, 
+                '", "module_id":', mm.module_id, 
+                ', "module_name":"', mm.module_name, 
                 '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 
                 '"}'
             ) SEPARATOR ', '
@@ -90,6 +96,8 @@ LEFT JOIN
     project_master AS pm ON e.project_id = pm.project_id
 LEFT JOIN
     employee_master AS em ON em.employee_id = e.employee_id
+LEFT JOIN 
+    module_master AS mm ON e.module_id = mm.module_id
 LEFT JOIN 
     task_master AS tm ON tm.task_id = e.task_id
 WHERE 
@@ -118,7 +126,7 @@ GROUP BY
             tasks_details: JSON.parse(item.tasks_details),
           };
         });
-
+console.log("temp",temp)
         res.status(StatusCodes.OK).json(temp);
       }
     );
