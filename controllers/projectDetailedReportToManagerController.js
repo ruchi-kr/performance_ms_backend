@@ -2,153 +2,16 @@ const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
 const asyncConnection = require("../db2");
 
-// const ViewProjectReport = async (req, res) => {
-//   const { reporting_manager_id } = req.params;
-//   const { toDate, fromDate, search } = req.query;
-//   console.log(
-//     "detailed report to manager -------> yahan hun ---->yahan hi hun22"
-//   );
-//   console.log("Search terms", search);
-//   console.log("toDate", toDate, "---fromDate:", fromDate);
-//   let altQuery = "";
-//   if (
-//     (toDate === null || toDate === "null" || toDate === undefined) &&
-//     (fromDate === null || fromDate === "null" || fromDate === undefined)
-//   ) {
-//     console.log("running default date range");
-//     altQuery = `
-//     SELECT
-//     pm.project_id,
-//     pm.project_name,
-//     SUM(e.allocated_time) AS total_allocated_time,
-//     SUM(e.actual_time) AS total_actual_time,
-//     SUM(tm.allocated_time) AS project_allocated_time,
-//     CONCAT(
-//         '[',
-//         GROUP_CONCAT(
-//             CONCAT(
-//                 '{',
-//                 '"task_id":', e.id,
-//                 ',"employee_id":', e.employee_id,
-//                 ', "name":"',em.name,
-//                 '", "task":"', tm.task_name,
-//                 '","module_id":', mm.module_id,
-//                 ',"planned_task_allocated_time":', tm.allocated_time,
-//                 ', "module_name":"',mm.module_name,
-//                 '", "task_percent":',e.task_percent,
-//                 ', "allocated_time":', e.allocated_time,
-//                 ', "actual_time":', e.actual_time,
-//                 ', "status":"', e.status,
-//                 '", "project_id":', e.project_id,
-//                 ', "project_name":"', pm.project_name,
-//                 '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'),
-//                 '"}'
-//             ) SEPARATOR ', '
-//         ),
-//         ']'
-//     ) AS tasks_details
-// FROM
-//     employee AS e
-// LEFT JOIN
-//     project_master AS pm ON e.project_id = pm.project_id
-// JOIN
-//     employee_master AS em ON em.employee_id = e.employee_id
-// LEFT JOIN
-//     task_master AS tm ON tm.task_id = e.task_id
-// LEFT JOIN
-//     module_master AS mm ON e.module_id = mm.module_id
-// WHERE
-//     e.manager_id = ?
-// AND
-//     e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY)
-// AND
-// (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
-// GROUP BY
-//     e.project_id;   `;
-//   } else {
-//     console.log("Running specific date range query");
-
-//     altQuery = `
-//     SELECT
-//     pm.project_id,
-//     pm.project_name,
-//     SUM(e.allocated_time) AS total_allocated_time,
-//     SUM(e.actual_time) AS total_actual_time,
-//     CONCAT(
-//         '[',
-//         GROUP_CONCAT(
-//             CONCAT(
-//                 '{',
-//                 '"task_id":', e.id,
-//                 ',"employee_id":', e.employee_id,
-//                 ', "name":"',em.name,
-//                 '", "task":"', tm.task_name,
-//                 '","module_id":', mm.module_id,
-//                 ',"planned_task_allocated_time":', tm.allocated_time,
-//                 ', "module_name":"',mm.module_name,
-//                 '", "task_percent":',e.task_percent,
-//                 ', "allocated_time":', e.allocated_time,
-//                 ', "actual_time":', e.actual_time,
-//                 ', "status":"', e.status,
-//                 '", "project_id":', e.project_id,
-//                 ', "project_name":"', pm.project_name,
-//                 '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'),
-//                 '"}'
-//             ) SEPARATOR ', '
-//         ),
-//         ']'
-//     ) AS tasks_details
-// FROM
-//     employee AS e
-// LEFT JOIN
-//     project_master AS pm ON e.project_id = pm.project_id
-// JOIN
-//     employee_master AS em ON em.employee_id = e.employee_id
-// LEFT JOIN
-//     task_master AS tm ON tm.task_id = e.task_id
-// LEFT JOIN
-//     module_master AS mm ON e.module_id = mm.module_id
-// WHERE
-//     e.manager_id = ?
-// AND
-//     LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%'))
-// AND
-//     DATE(e.created_at) BETWEEN ? AND ?
-// GROUP BY
-//     e.project_id;
-//     `;
-//   }
-
-//   try {
-//     const [results] = await asyncConnection.query(altQuery, [
-//       reporting_manager_id,
-//       search,
-//       toDate,
-//       fromDate,
-//     ]);
-//     console.log("obj", results);
-//     const temp = results.map((item) => {
-//       return {
-//         ...item,
-//         tasks_details: JSON.parse(item.tasks_details),
-//       };
-
-//       return res.status(StatusCodes.OK).json(temp);
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   res.status(StatusCodes.OK).json(temp);
-// };
-
 const ViewProjectReport = async (req, res) => {
   const { reporting_manager_id } = req.params;
-  const { toDate, fromDate, search } = req.query;
+  const { toDate, fromDate, search, stage } = req.query;
   console.log(
     "detailed report to manager -------> yahan hun ---->yahan hi hun22"
   );
-  console.log("Search terms", search);
   console.log("toDate", toDate, "---fromDate:", fromDate);
+  let stageSearch;
+  stage === "all" ? (stageSearch = "all") : (stageSearch = stage);
+  console.log("stage terms", stageSearch);
 
   let altQuery = "";
 
@@ -205,9 +68,11 @@ const ViewProjectReport = async (req, res) => {
         WHERE 
             e.manager_id = ?
         AND
-            e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY)
+            e.created_at >= DATE_ADD(NOW(), INTERVAL -30 DAY)
         AND
             (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
+        AND
+        (? = 'all' OR pm.stage = ?)
         GROUP BY 
             e.project_id;`;
   } else {
@@ -260,7 +125,9 @@ const ViewProjectReport = async (req, res) => {
         WHERE 
             e.manager_id = ?
         AND 
-            LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%'))
+            (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
+        AND
+            (? = 'all' OR pm.stage = ?)
         AND 
             DATE(e.created_at) BETWEEN ? AND ?
         GROUP BY 
@@ -270,11 +137,14 @@ const ViewProjectReport = async (req, res) => {
   const [totalManDays] = await asyncConnection.query(
     "SELECT pm.project_id,pm.project_name,pm.status,   SUM(CAST(tm.allocated_time AS DECIMAL(10, 2))) AS total_man_days FROM project_master AS pm LEFT JOIN   module_master AS mm ON pm.project_id = mm.project_id LEFT JOIN task_master AS tm ON mm.module_id = tm.module_id WHERE pm.status LIKE 'in progress' GROUP BY pm.project_id;"
   );
-  console.log("total man days", totalManDays);
+  //   console.log("total man days", totalManDays);
   try {
     const [results] = await asyncConnection.query(altQuery, [
       reporting_manager_id,
       search,
+      search,
+      stageSearch,
+      stageSearch,
       toDate,
       fromDate,
     ]);
@@ -286,7 +156,7 @@ const ViewProjectReport = async (req, res) => {
       const match = totalManDays.find((i) => i.project_id === item.project_id);
       // If a match is found, insert the total_allocated_hours into the second array
       if (match) {
-        console.log("match", match);
+        // console.log("match", match);
         item.total_allocated_man_days = match.total_man_days;
       }
       return {
@@ -295,7 +165,7 @@ const ViewProjectReport = async (req, res) => {
         tasks_details: JSON.parse(item.tasks_details),
       };
     });
-    console.log(temp);
+    // console.log(temp);
     return res.status(StatusCodes.OK).json(temp);
   } catch (error) {
     console.log(error);

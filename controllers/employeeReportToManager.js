@@ -59,7 +59,7 @@ const ViewProjectReport = (req, res) => {
       task_master AS tm ON tm.task_id = e.task_id
   WHERE 
       e.manager_id = ?
-      AND e.created_at >= DATE_ADD(NOW(), INTERVAL -28 DAY) 
+      AND e.created_at >= DATE_ADD(NOW(), INTERVAL -30 DAY) 
       AND
       (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
   GROUP BY 
