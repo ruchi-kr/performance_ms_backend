@@ -65,22 +65,36 @@ router.post("/api/user/addTask",protectedRoute, (req, res) => {
 // GET
 router.get("/api/user/getTasks/:employee_id",protectedRoute, (req, res) => {
   const employee_id = req.params.employee_id;
-  // const query =
-    // "SELECT * FROM employee WHERE user_id= ? AND ((DATE(created_at)=CURRENT_DATE() OR status = 'inprocess' OR status = 'notstarted') OR (DATE(actual_end_date)=CURRENT_DATE() AND status = 'completed'))";
+  const query =
+    "SELECT * FROM employee WHERE user_id= ? AND ((DATE(created_at)=CURRENT_DATE() OR status = 'inprocess' OR status = 'notstarted') OR (DATE(actual_end_date)=CURRENT_DATE() AND status = 'completed'))";
  
     // const query =
-  //   "SELECT employee.* , em.* FROM employee JOIN user_master AS um ON um.user_id = employee.user_id JOIN employee_master AS em ON em.employee_id = um.employee_id WHERE employee.employee_id= ?";
+    // "SELECT employee.* , em.* FROM employee JOIN user_master AS um ON um.user_id = employee.user_id JOIN employee_master AS em ON em.employee_id = um.employee_id WHERE employee.employee_id= ?";
   
-  const query= `SELECT e.*, t.task_name, m.module_name
-  FROM employee e
-  LEFT JOIN task_master t ON e.task_id = t.task_id
-  LEFT JOIN module_master m ON e.module_id = m.module_id
-  WHERE e.user_id = ?
-  AND (
-      (DATE(e.created_at) = CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted') 
-      OR 
-      (DATE(e.actual_end_date) = CURRENT_DATE() AND e.status = 'completed')
-  )`;
+//   const query= `SELECT e.*, t.task_name, m.module_name
+//   FROM employee e
+//   LEFT JOIN task_master t ON e.task_id = t.task_id
+//   LEFT JOIN module_master m ON e.module_id = m.module_id
+//   WHERE e.user_id = ?
+//   AND (
+//     DATE(e.created_at) = CURRENT_DATE() 
+//     OR e.status = 'inprocess' 
+//     OR e.status = 'notstarted'
+//     OR DATE(e.actual_end_date) = CURRENT_DATE()
+//   )
+//  `;
+  // const query= `SELECT e.*, t.task_name, m.module_name
+  // FROM employee e
+  // LEFT JOIN task_master t ON e.task_id = t.task_id
+  // LEFT JOIN module_master m ON e.module_id = m.module_id
+  // WHERE e.user_id = ?
+  // AND (
+  //     (DATE(e.created_at) = CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted'  OR e.status = 'completed') 
+  //     OR 
+  //     (DATE(e.updated_at) = CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted'  OR e.status = 'completed') 
+  //     OR 
+  //     (DATE(e.actual_end_date) = CURRENT_DATE() AND e.status = 'completed')
+  // )`;
   
   connection.query(query, [employee_id], (err, results) => {
     if (err) {

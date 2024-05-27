@@ -274,20 +274,20 @@ const ViewProjectReport = async (req, res) => {
     // console.log("obj", results);
 
     const temp = results.map((item) => {
-        console.log("project_id",item.project_id)
-        const match = totalManDays.find(i => i.project_id === item.project_id);
-        // If a match is found, insert the total_allocated_hours into the second array
-        if (match) {
-            console.log("match",match)
-            item.total_allocated_man_days = match.total_man_days;
-        }
+      console.log("project_id", item.project_id);
+      const match = totalManDays.find((i) => i.project_id === item.project_id);
+      // If a match is found, insert the total_allocated_hours into the second array
+      if (match) {
+        console.log("match", match);
+        item.total_allocated_man_days = match.total_man_days;
+      }
       return {
         ...item,
-        total_allocated_man_days : match.total_man_days*8,
+        total_allocated_man_days: match.total_man_days * 8,
         tasks_details: JSON.parse(item.tasks_details),
       };
     });
-console.log(temp)
+    console.log(temp);
     return res.status(StatusCodes.OK).json(temp);
   } catch (error) {
     console.log(error);

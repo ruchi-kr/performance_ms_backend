@@ -39,7 +39,13 @@ const GetDailyReportToManagerPerEmployee = async (req, res) => {
     let query = "";
     if (employee_id === "null" || employee_id === null) {
       console.log("running all employees query with particular project");
-      query = `SELECT e.*, pm.project_name,em.*,mm.module_name,tm.task_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN module_master as mm ON e.module_id = mm.module_id AND LEFT JOIN task_master AS tm ON e.task_id = tm.task_id WHERE e.manager_id=? AND e.project_id=?  AND (DATE(created_at)<=CURRENT_DATE() OR e.status='inprocess' OR e.status='notstarted' )`;
+      // query = `SELECT e.*, pm.project_name,em.*,mm.module_name,tm.task_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN module_master as mm ON e.module_id = mm.module_id AND LEFT JOIN task_master AS tm ON e.task_id = tm.task_id WHERE e.manager_id=? AND e.project_id=?  AND (DATE(created_at)<=CURRENT_DATE() OR e.status='inprocess' OR e.status='notstarted' )`;
+      query = `SELECT e.*, pm.project_name,em.*,mm.module_name,tm.task_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN module_master as mm ON e.module_id = mm.module_id AND LEFT JOIN task_master AS tm ON e.task_id = tm.task_id WHERE e.manager_id=? AND e.project_id=?  AND (
+        (DATE(e.created_at) = CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted'  OR e.status = 'completed') 
+        OR 
+        (DATE(e.updated_at) = CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted'  OR e.status = 'completed') 
+        OR 
+        (DATE(e.actual_end_date) = CURRENT_DATE() AND e.status = 'completed')`;
       connection.query(
         query,
         [Number(manager_id), Number(project_id)],
@@ -53,8 +59,28 @@ const GetDailyReportToManagerPerEmployee = async (req, res) => {
       );
     } else if (project_id === "null" || project_id === null) {
       console.log("running particular employees query yahan hun");
+      // query =
+      //   "SELECT e.*, pm.project_name,em.*,tm.task_name,mm.module_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN module_master AS mm ON e.module_id = mm.module_id LEFT JOIN task_master AS tm ON e.task_id = tm.task_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND ((DATE(e.created_at)=CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted') OR (DATE(e.actual_end_date)=CURRENT_DATE() AND e.status = 'completed')) ORDER BY created_at DESC";
       query =
-        "SELECT e.*, pm.project_name,em.*,tm.task_name,mm.module_name FROM employee as e LEFT JOIN project_master AS pm ON e.project_id=pm.project_id LEFT JOIN module_master AS mm ON e.module_id = mm.module_id LEFT JOIN task_master AS tm ON e.task_id = tm.task_id LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id WHERE e.manager_id=? AND e.employee_id = ? AND ((DATE(e.created_at)=CURRENT_DATE() OR e.status = 'inprocess' OR e.status = 'notstarted') OR (DATE(e.actual_end_date)=CURRENT_DATE() AND e.status = 'completed')) ORDER BY created_at DESC";
+        `SELECT e.*, 
+       pm.project_name, 
+       em.*, 
+       tm.task_name, 
+       mm.module_name 
+FROM employee AS e 
+LEFT JOIN project_master AS pm ON e.project_id = pm.project_id 
+LEFT JOIN module_master AS mm ON e.module_id = mm.module_id 
+LEFT JOIN task_master AS tm ON e.task_id = tm.task_id 
+LEFT JOIN employee_master AS em ON e.employee_id = em.employee_id 
+WHERE e.manager_id = ? 
+  AND e.employee_id = ? 
+  AND (
+        DATE(e.created_at) = CURRENT_DATE() 
+        OR DATE(e.updated_at) = CURRENT_DATE() 
+        OR DATE(e.actual_end_date) = CURRENT_DATE() 
+        
+      );
+`;
       connection.query(query, [manager_id, employee_id], (err, results) => {
         if (err) throw err;
         temp = JSON.parse(JSON.stringify(results));
