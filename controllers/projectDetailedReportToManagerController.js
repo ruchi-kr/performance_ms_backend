@@ -161,6 +161,8 @@ const ViewProjectReport = async (req, res) => {
         SELECT 
             pm.project_id,
             pm.project_name,
+            pm.schedule_start_date,
+            pm.schedule_end_date,
             SUM(e.allocated_time) AS total_allocated_time,
             SUM(e.actual_time) AS total_actual_time,
             SUM(tm.allocated_time) AS project_allocated_time,
@@ -182,9 +184,11 @@ const ViewProjectReport = async (req, res) => {
                         ', "status":"', e.status, 
                         '", "project_id":', e.project_id, 
                         ', "project_name":"', pm.project_name, 
-                        '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 
+                        '", "created_at":"', IFNULL(DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 'null'),
+                        '", "updated_at":"', IFNULL(DATE_FORMAT(e.updated_at, '%Y-%m-%d %H:%i:%s'), 'null'), 
+                        '", "actual_end_date":"', IFNULL(DATE_FORMAT(e.actual_end_date, '%Y-%m-%d %H:%i:%s'), 'null'),
                         '"}'
-                    ) SEPARATOR ', '
+                    )ORDER BY e.created_at DESC SEPARATOR ', '
                 ),
                 ']'
             ) AS tasks_details
@@ -213,6 +217,8 @@ const ViewProjectReport = async (req, res) => {
         SELECT 
             pm.project_id,
             pm.project_name,    
+            pm.schedule_start_date,
+            pm.schedule_end_date,
             SUM(e.allocated_time) AS total_allocated_time,
             SUM(e.actual_time) AS total_actual_time,
             CONCAT(
@@ -233,9 +239,11 @@ const ViewProjectReport = async (req, res) => {
                         ', "status":"', e.status, 
                         '", "project_id":', e.project_id, 
                         ', "project_name":"', pm.project_name, 
-                        '", "created_at":"', DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 
+                        '", "created_at":"', IFNULL(DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 'null'),
+                        '", "updated_at":"', IFNULL(DATE_FORMAT(e.updated_at, '%Y-%m-%d %H:%i:%s'), 'null'), 
+                        '", "actual_end_date":"', IFNULL(DATE_FORMAT(e.actual_end_date, '%Y-%m-%d %H:%i:%s'), 'null'), 
                         '"}'
-                    ) SEPARATOR ', '
+                    )ORDER BY e.created_at DESC SEPARATOR ', '
                 ),
                 ']'
             ) AS tasks_details

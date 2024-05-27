@@ -141,7 +141,7 @@ const ViewProjectReport = (req, res) => {
             '", "updated_at":"', IFNULL(DATE_FORMAT(e.updated_at, '%Y-%m-%d %H:%i:%s'), 'null'), 
             '", "actual_end_date":"', IFNULL(DATE_FORMAT(e.actual_end_date, '%Y-%m-%d %H:%i:%s'), 'null'), 
             '"}'
-        )ORDER BY e.created_at DESC  SEPARATOR ', '
+        )ORDER BY e.created_at DESC SEPARATOR ', '
         ),
         ']'
     ) AS tasks_details
