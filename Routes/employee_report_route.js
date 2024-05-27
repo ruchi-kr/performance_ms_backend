@@ -38,20 +38,23 @@ router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
                         SELECT CONCAT(
                             '[',
                             GROUP_CONCAT(
-                               JSON_OBJECT(
+                              DISTINCT JSON_OBJECT(
                                   'task_name', t.task_name,
                                   'task_allocated_time', t.allocated_time,
                                   'stage', t.stage,
-                                  'created_at',e.created_at,
-                                  'employee_allocated_time',e.allocated_time,
-                                  'employee_actual_time',e.actual_time,
-                                  'status',e.status   
+                                  'created_at',et.created_at,
+                                  'employee_allocated_time',et.allocated_time,
+                                  'employee_actual_time',et.actual_time,
+                                  'status',et.status   
                                 )
                             ),
                             ']'
                         )
                         FROM task_master t
-                        WHERE t.module_id = m.module_id
+                        JOIN employee et ON t.task_id = et.task_id
+    WHERE t.module_id = m.module_id
+    AND et.project_id = e.project_id
+                       
                         AND t.task_id IN (
                           SELECT DISTINCT task_id
                           FROM employee
@@ -81,6 +84,7 @@ router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
     FROM employee e
     JOIN project_master p ON e.project_id = p.project_id
     WHERE e.user_id = ?
+    AND p.project_name LIKE '%${name}%'
     GROUP BY e.project_id
               `;
   if (!fromDate && !toDate) {
