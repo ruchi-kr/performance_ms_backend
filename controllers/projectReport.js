@@ -29,12 +29,12 @@ const ViewProjectReport = (req, res) => {
   ) {
     // console.log("running default date range");
     altQuery = `SELECT e.employee_id,e.manager_id,e.project_id,e.actual_time,e.allocated_time,e.status,SUM(allocated_time) AS total_allocated_time, SUM(actual_time) AS total_actual_time,em.name,pm.stage,pm.project_name,pm.schedule_start_date,schedule_end_date FROM employee AS e LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN project_master AS pm ON e.project_id = pm.project_id WHERE e.project_id=? AND e.employee_id=? AND e.manager_id=? 
-    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -30 DAY)
+    AND e.created_at >= DATE_ADD(NOW(), INTERVAL -30 DAY) ;
     `;
   } else {
     // console.log("Running specific date range query");
     altQuery = `SELECT e.employee_id,e.manager_id,e.project_id,e.actual_time,e.allocated_time,e.status,SUM(allocated_time) AS total_allocated_time, SUM(actual_time) AS total_actual_time,em.name,pm.project_name,pm.stage,pm.schedule_start_date,schedule_end_date FROM employee AS e LEFT JOIN employee_master AS em ON e.employee_id=em.employee_id LEFT JOIN project_master AS pm ON e.project_id = pm.project_id WHERE e.project_id=? AND e.employee_id=? AND e.manager_id=? 
-    AND DATE(e.created_at) BETWEEN ? AND ?
+    AND DATE(e.created_at) BETWEEN ? AND ? ;
     `;
   }
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
@@ -136,5 +136,31 @@ const ProjectActualStartDate = (req, res) => {
     console.log("error");
   }
 };
+const ProjectActualEndDate = (req, res) => {
+  const { reporting_manager_id } = req.params;
+  //console.log("reporting manager id", reporting_manager_id);
+  try {
+    const query = `SELECT e.project_id,
+      MAX(e.actual_end_date) AS actual_end_date
+  FROM
+      employee e
+  GROUP BY
+      e.project_id`;
+    connection.query(
+      query,
+      reporting_manager_id,
 
-module.exports = { ViewProjectReport, ProjectActualStartDate };
+      (err, results) => {
+        res.status(StatusCodes.OK).json(results);
+      }
+    );
+  } catch (error) {
+    console.log("error");
+  }
+};
+
+module.exports = {
+  ViewProjectReport,
+  ProjectActualStartDate,
+  ProjectActualEndDate,
+};
