@@ -8,10 +8,8 @@ const ViewProjectReport = async (req, res) => {
   console.log(
     "detailed report to manager -------> yahan hun ---->yahan hi hun22"
   );
-  console.log("toDate", toDate, "---fromDate:", fromDate);
   let stageSearch;
-  stage === "all" ? (stageSearch = "all") : (stageSearch = stage);
-  console.log("stage terms", stageSearch);
+//   stage === "all" ? (stageSearch = "all") : (stageSearch = stage);
 
   let altQuery = "";
 
@@ -74,7 +72,10 @@ const ViewProjectReport = async (req, res) => {
         AND
         (? = 'all' OR pm.stage = ?)
         GROUP BY 
-            e.project_id;`;
+            e.project_id
+        ORDER BY
+            pm.project_name;
+        ;`;
   } else {
     console.log("Running specific date range query");
 
@@ -131,7 +132,10 @@ const ViewProjectReport = async (req, res) => {
         AND 
             DATE(e.created_at) BETWEEN ? AND ?
         GROUP BY 
-            e.project_id;`;
+            e.project_id
+        ORDER BY
+            pm.project_name;
+        `;
   }
 
   const [totalManDays] = await asyncConnection.query(
@@ -143,8 +147,8 @@ const ViewProjectReport = async (req, res) => {
       reporting_manager_id,
       search,
       search,
-      stageSearch,
-      stageSearch,
+      stage,
+      stage,
       toDate,
       fromDate,
     ]);
