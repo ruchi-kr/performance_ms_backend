@@ -43,9 +43,11 @@ router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
                                   'task_allocated_time', t.allocated_time,
                                   'stage', t.stage,
                                   'created_at',et.created_at,
+                                  'updated_at',et.updated_at,
                                   'employee_allocated_time',et.allocated_time,
                                   'employee_actual_time',et.actual_time,
-                                  'status',et.status   
+                                  'status',et.status,
+                                  'per_task_efficiency',  (et.allocated_time / et.actual_time) * et.task_percent  
                                 )
                             ),
                             ']'
@@ -79,7 +81,7 @@ router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
   if (fromDate && toDate) {
     query += ` AND DATE(e.created_at) BETWEEN ? AND ? `;
   }
-
+  
   query += ` ) AS modules
     FROM employee e
     JOIN project_master p ON e.project_id = p.project_id
@@ -199,7 +201,9 @@ WHERE e.user_id = ?
     query += ` AND DATE(e.created_at) BETWEEN ? AND ? `;
     params.push(fromDate, toDate);
   }
-
+// else{
+//   query += `AND DATE(e.created_at) >= DATE_ADD(NOW(), INTERVAL -28 DAY)`;
+// }
   query += `
     GROUP BY
       DATE(e.created_at)
