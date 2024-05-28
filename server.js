@@ -30,6 +30,7 @@ app.use(require("./Routes/designation_master_route"));
 app.use(require("./Routes/projectmaster_route"));
 app.use(require("./Routes/dashdata_route"));
 app.use(require("./Routes/remarkRoutes"));
+app.use(require("./Routes/Upload_profile_route"));
 //Teams routes
 app.use("/api/user", teamsRoutes);   //MANAGER
 app.use("/api", remarkRoutes);       //M
