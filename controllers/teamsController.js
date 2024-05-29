@@ -1,8 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const connection = require("../db");
 
-
-
 const GetAllTeams = async (req, res) => {
   const { reporting_manager_id } = req.params;
   console.log("reporting manager", reporting_manager_id);
@@ -49,26 +47,45 @@ const GetTeam = async (req, res) => {
 const AddTeam = async (req, res) => {
   const { reporting_manager_id } = req.params;
   const { project_id, employee_id } = req.body;
-  console.log("employee id", employee_id);
-  console.log("reporting manager ", reporting_manager_id);
-  console.log("project_id", project_id);
 
-  const query =
-    "INSERT INTO team ( project_id, employee_id,reporting_manager_id) VALUES (?, ?, ?)";
-  connection.query(
-    query,
-    [project_id, JSON.stringify(employee_id), reporting_manager_id],
-    (err, results) => {
-      if (err) {
-        console.log(err);
-        return res
-          .status(StatusCodes.NOT_MODIFIED)
-          .json({ msg: "data falied added" });
-      } else {
-        res.status(StatusCodes.OK).json({ msg: "data added" });
+  try {
+    const query =
+      "INSERT INTO team ( project_id, employee_id,reporting_manager_id) VALUES (?, ?, ?)";
+    connection.query(
+      query,
+      [project_id, JSON.stringify(employee_id), reporting_manager_id],
+      (err, results) => {
+        if (err) {
+          console.log(
+            "-------------------------------error inside function---------------------",
+            err
+          );
+          if (err.errno === 1062) {
+            return res
+              .status(StatusCodes.CONFLICT)
+              .json({
+                msg: "Project already under manager choose different project",
+              });
+          } else {
+            return res
+              .status(StatusCodes.INTERNAL_SERVER_ERROR)
+              .json({ msg: "Internal server error" });
+          }
+        } else {
+          return res.status(StatusCodes.OK).json({ msg: "data added" });
+        }
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.log(
+      "-------------------------------error---------------------",
+      error
+    );
+    return res
+      .status(StatusCodes.CONFLICT)
+      .json({ msg: "Project already under manager choose different project" });
+  }
+
   console.log(project_id, employee_id, reporting_manager_id);
 };
 const EditTeam = async (req, res) => {
@@ -126,6 +143,5 @@ const DeleteTeam = async (req, res) => {
     res.status(StatusCodes.NO_CONTENT).json({ msg: "record deleted" });
   });
 };
-
 
 module.exports = { GetAllTeams, GetTeam, AddTeam, EditTeam, DeleteTeam };
