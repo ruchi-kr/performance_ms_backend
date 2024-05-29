@@ -47,6 +47,7 @@ router.get("/api/user/getReportspw/:employee_id",protectedRoute, (req, res) => {
                                   'employee_allocated_time',et.allocated_time,
                                   'employee_actual_time',et.actual_time,
                                   'status',et.status,
+                                  'task_percent', et.task_percent,
                                   'per_task_efficiency',  (et.allocated_time / et.actual_time) * et.task_percent  
                                 )
                             ),
@@ -166,7 +167,8 @@ router.get("/api/user/getReportsdw/:employee_id",protectedRoute, (req, res) => {
                                   'created_at',e.created_at,
                                   'employee_allocated_time',e.allocated_time,
                                   'employee_actual_time',e.actual_time,
-                                  'status',e.status   
+                                  'status',e.status,
+                                  'task_percent', e.task_percent  
                                               )
                                           ),
                                           ']'

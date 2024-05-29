@@ -150,11 +150,27 @@ router.put("/api/user/updateTask/:taskId", protectedRoute, (req, res) => {
     end_time,
     task_id,
   } = req.body;
+
+  const today = moment().format("YYYY-MM-DD");
+  console.log("today date edit api",today);
   let actual_end_date = null;
   if (status === "completed") {
     actual_end_date = moment.utc().format();
   }
-
+  connection.query(
+    `SELECT * FROM employee WHERE task_id = ? AND DATE(created_at)= ?`,
+    [task_id, today],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while processing your request." });
+      } else if (results.length > 0) {
+        return res
+          .status(400)
+          .json({ error: "Task already exists for the same date." });
+      } else {
   const query =
     "UPDATE employee SET project_id = ?,module_id=?,user_id=?, employee_id=? ,manager_id=?,allocated_time = ?, actual_time = ?,task_percent=?, status = ?, remarks = ?,actual_end_date=?,task_id=? WHERE id = ?";
   connection.query(
@@ -187,6 +203,7 @@ router.put("/api/user/updateTask/:taskId", protectedRoute, (req, res) => {
       }
     }
   );
+}})
 });
 
 // DELETE
