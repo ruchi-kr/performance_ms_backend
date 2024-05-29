@@ -107,8 +107,10 @@ router.get("/api/admin/getallProject",protectedRoute, (req, res) => {
 router.get("/api/admin/getProjects",protectedRouteonlytoken, (req, res) => {
   // const query = 'SELECT * FROM project_master ';
   try {
+    // const query =
+    //   "SELECT pm.*,t.team_id,t.employee_id,t.reporting_manager_id,em.name FROM project_master AS pm LEFT JOIN team AS t ON pm.project_id=t.project_id LEFT JOIN employee_master AS em ON t.reporting_manager_id=em.employee_id";
     const query =
-      "SELECT pm.*,t.team_id,t.employee_id,t.reporting_manager_id,em.name FROM project_master AS pm LEFT JOIN team AS t ON pm.project_id=t.project_id LEFT JOIN employee_master AS em ON t.reporting_manager_id=em.employee_id";
+      "SELECT * FROM project_master";
     connection.query(query, (err, results) => {
       if (err) {
         console.log(err);
