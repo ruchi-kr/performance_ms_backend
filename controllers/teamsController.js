@@ -61,11 +61,9 @@ const AddTeam = async (req, res) => {
             err
           );
           if (err.errno === 1062) {
-            return res
-              .status(StatusCodes.CONFLICT)
-              .json({
-                msg: "Project already under manager choose different project",
-              });
+            return res.status(StatusCodes.CONFLICT).json({
+              msg: "Project already under manager choose different project",
+            });
           } else {
             return res
               .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -143,5 +141,34 @@ const DeleteTeam = async (req, res) => {
     res.status(StatusCodes.NO_CONTENT).json({ msg: "record deleted" });
   });
 };
+const ProjectsNotUnderOtherManagers = (req, res) => {
+  const { reporting_manager_id } = req.params;
+  const query = `SELECT t.team_id,t.reporting_manager_id,t.employee_id,pm.* 
+  FROM project_master as pm 
+  LEFT JOIN team AS t ON t.project_id = pm.project_id 
+  WHERE t.reporting_manager_id = ? OR t.reporting_manager_id IS NULL AND pm.project_id!=1;`;
 
-module.exports = { GetAllTeams, GetTeam, AddTeam, EditTeam, DeleteTeam };
+  try {
+    connection.query(query, [reporting_manager_id], (err, results) => {
+      if (err)
+        return res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({ msg: "Internal server error" });
+
+      return res.status(StatusCodes.OK).json(results);
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "Internal server error" });
+  }
+};
+module.exports = {
+  GetAllTeams,
+  GetTeam,
+  AddTeam,
+  EditTeam,
+  DeleteTeam,
+  ProjectsNotUnderOtherManagers,
+};

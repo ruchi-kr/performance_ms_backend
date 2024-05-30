@@ -3,10 +3,16 @@ const router = express.Router();
 
 const protectedRoute = require("../middleware/protectedResourceManager");
 
-const { ViewProjectReport } = require("../controllers/projectDetailedReportToManagerController");
+const {
+  ViewProjectReport,
+  ViewParticularProjectReport,
+} = require("../controllers/projectDetailedReportToManagerController");
 
 router
   .route("/project/report/detailed/:reporting_manager_id")
-  .get(protectedRoute,ViewProjectReport);
+  .get(protectedRoute, ViewProjectReport);
+router
+  .route("/project/report/detailed/:reporting_manager_id/:project_id")
+  .get(protectedRoute, ViewParticularProjectReport);
 
 module.exports = router;
