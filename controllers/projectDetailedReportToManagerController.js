@@ -6,9 +6,9 @@ const ViewProjectReport = async (req, res) => {
   const { reporting_manager_id } = req.params;
   const { toDate, fromDate, search, stage } = req.query;
   console.log(
-    "detailed report to manager -------> yahan hun ---->yahan hi hun22"
+    "detailed report to manager -------> yahan hun ---->yahan hi hun22 toDate",toDate,"--fromDate--",fromDate
   );
-  let stageSearch;
+  // let stageSearch;
   //   stage === "all" ? (stageSearch = "all") : (stageSearch = stage);
 
   let altQuery = "";
@@ -86,64 +86,71 @@ ORDER BY
     console.log("Running specific date range query");
 
     altQuery = `
-        SELECT 
-            pm.project_id,
-            pm.project_name,    
-            pm.schedule_start_date,
-            pm.schedule_end_date,
-            SUM(e.allocated_time) AS total_allocated_time,
-            SUM(e.actual_time) AS total_actual_time,
+    SELECT 
+    mm.project_id,
+    pm.project_name,
+    pm.schedule_start_date,
+    pm.schedule_end_date,
+    SUM(e.allocated_time) AS total_allocated_time,
+    SUM(e.actual_time) AS total_actual_time,
+    SUM(tm.allocated_time) AS project_allocated_time,
+    CONCAT(
+        '[',
+        GROUP_CONCAT(
             CONCAT(
-                '[',
-                GROUP_CONCAT(
-                    CONCAT(
-                        '{', 
-                        '"task_id":', e.id, 
-                        ',"employee_id":', e.employee_id, 
-                        ', "name":"',em.name,                
-                        '", "task":"', tm.task_name, 
-                        '","module_id":', mm.module_id,    
-                        ',"planned_task_allocated_time":', tm.allocated_time,             
-                        ', "module_name":"',mm.module_name,
-                        '", "task_percent":',e.task_percent,
-                        ', "allocated_time":', e.allocated_time,  
-                        ', "actual_time":', e.actual_time,                 
-                        ', "status":"', e.status, 
-                        '", "project_id":', e.project_id, 
-                        ', "project_name":"', pm.project_name, 
-                        '", "created_at":"', IFNULL(DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 'null'),
-                        '", "updated_at":"', IFNULL(DATE_FORMAT(e.updated_at, '%Y-%m-%d %H:%i:%s'), 'null'), 
-                        '", "actual_end_date":"', IFNULL(DATE_FORMAT(e.actual_end_date, '%Y-%m-%d %H:%i:%s'), 'null'), 
-                        '"}'
-                    )ORDER BY e.created_at DESC SEPARATOR ', '
-                ),
-                ']'
-            ) AS tasks_details
-        FROM 
-            employee AS e
-        LEFT JOIN 
-            project_master AS pm ON e.project_id = pm.project_id
-        JOIN
-            employee_master AS em ON em.employee_id = e.employee_id
-        LEFT JOIN 
-            task_master AS tm ON tm.task_id = e.task_id
-        LEFT JOIN
-            module_master AS mm ON e.module_id = mm.module_id
-        WHERE 
-            e.manager_id = ?
-        AND 
-            (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '')
-        AND
-            (? = 'all' OR pm.stage = ?)
-        AND 
-            DATE(e.created_at) BETWEEN ? AND ?
-        GROUP BY 
-            e.project_id
-        ORDER BY
-            pm.project_name;
+                '{', 
+                '"task_id":', tm.task_id, 
+                ',"employee_id":', IFNULL(e.employee_id, 'null'), 
+                ', "name":"', IFNULL(em.name, 'null'),                
+                '", "task":"', tm.task_name, 
+                '","module_id":', tm.module_id, 
+                ',"planned_task_allocated_time":', tm.allocated_time, 
+                ', "module_name":"', IFNULL(mm.module_name, 'null'),
+                '", "task_percent":', IFNULL(e.task_percent, 'null'),
+                ', "allocated_time":', IFNULL(e.allocated_time, 'null'),  
+                ', "actual_time":', IFNULL(e.actual_time, 'null'),                 
+                ', "status":"', IFNULL(e.status, 'null'), 
+                '", "project_id":', IFNULL(mm.project_id, 'null'), 
+                ', "project_name":"', IFNULL(pm.project_name, 'null'), 
+                '", "created_at":"', IFNULL(DATE_FORMAT(e.created_at, '%Y-%m-%d %H:%i:%s'), 'null'),
+                '", "updated_at":"', IFNULL(DATE_FORMAT(e.updated_at, '%Y-%m-%d %H:%i:%s'), 'null'), 
+                '", "actual_end_date":"', IFNULL(DATE_FORMAT(e.actual_end_date, '%Y-%m-%d %H:%i:%s'), 'null'),
+                '"}'
+            ) ORDER BY e.created_at DESC SEPARATOR ', '
+        ),
+        ']'
+    ) AS tasks_details,
+    MAX(CASE 
+        WHEN e.actual_time > e.allocated_time THEN e.actual_time - e.allocated_time 
+        ELSE 0 
+    END) AS max_time_variance,
+    COUNT(e.id) AS total_tasks
+FROM 
+    task_master AS tm
+LEFT JOIN 
+    employee AS e ON tm.task_id = e.task_id
+LEFT JOIN 
+    module_master AS mm ON tm.module_id = mm.module_id
+LEFT JOIN 
+    project_master AS pm ON mm.project_id = pm.project_id
+LEFT JOIN
+    employee_master AS em ON e.employee_id = em.employee_id
+WHERE 
+    (e.manager_id = ? OR e.manager_id IS NULL)
+AND
+    (LOWER(em.name) LIKE LOWER(CONCAT('%', ?, '%')) OR ? = '' OR em.name IS NULL)
+AND
+    (? = 'all' OR pm.stage = ? OR pm.stage IS NULL)
+AND
+    (e.created_at BETWEEN ? AND ? OR e.created_at IS NULL)
+
+GROUP BY 
+    mm.project_id, pm.project_name, pm.schedule_start_date, pm.schedule_end_date
+ORDER BY
+    pm.project_name;
         `;
   }
-
+//  DATE(e.created_at) BETWEEN ? AND ?
   const [totalManDays] = await asyncConnection.query(
     "SELECT pm.project_id,pm.project_name,pm.status,   SUM(CAST(tm.allocated_time AS DECIMAL(10, 2))) AS total_man_days FROM project_master AS pm LEFT JOIN   module_master AS mm ON pm.project_id = mm.project_id LEFT JOIN task_master AS tm ON mm.module_id = tm.module_id WHERE pm.status LIKE 'in progress' GROUP BY pm.project_id;"
   );
