@@ -77,7 +77,7 @@ GROUP BY
     mm.to_date,
     mm.from_date
 ORDER BY
-    delay_days DESC;
+    max_delay_days DESC;
 
 `;
   try {
