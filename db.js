@@ -6,8 +6,7 @@ const mysql = require("mysql");
     user: "root",
     password: "",
     database: "performancems",
-    time_zone: "+5:30",
-    
+    time_zone: "+00:00",   
   });
 
 // connection.connect((err) => {

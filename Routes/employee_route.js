@@ -36,8 +36,8 @@ router.post("/api/user/addTask", protectedRoute, (req, res) => {
   }
   //  AND DATE(created_at) = ${today}
   connection.query(
-    `SELECT * FROM employee WHERE task_id = ? AND DATE(created_at)= ?`,
-    [task_id, today],
+    `SELECT * FROM employee WHERE task_id = ? AND DATE(created_at)= ? AND employee_id = ?`,
+    [task_id, today, employee_id],
     (err, results) => {
       if (err) {
         console.log(err);
