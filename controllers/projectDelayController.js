@@ -75,7 +75,9 @@ GROUP BY
     mm.module_id,
     mm.module_name,
     mm.to_date,
-    mm.from_date;
+    mm.from_date
+ORDER BY
+    delay_days DESC;
 
 `;
   try {
@@ -160,8 +162,9 @@ GROUP BY
     mm.to_date,
     mm.from_date,
     tm.task_id,
-    tm.task_name;
-
+    tm.task_name
+ORDER BY
+    delay_days DESC;
 `;
 
   try {
