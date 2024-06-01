@@ -21,7 +21,8 @@ const managerRemarksController = require("./Routes/managerRemarksController");
 const projectPlanRoutes = require("./Routes/projectPlanRoutes");
 const moduleTasksRoutes = require("./Routes/moduleTasksRouter");
 const systemSettingsRoutes = require("./Routes/systemSettingsRouter");
-const getProjectTotalManHoursRoutes = require("./Routes/getProjectTotalManHoursRoutes")
+const getProjectTotalManHoursRoutes = require("./Routes/getProjectTotalManHoursRoutes");
+const projectDelayRoutes = require("./Routes/projectDelayCalculatorRoutes");
 // app.use(require("./Routes/Auth_route"));
 app.use(require("./Routes/Auth_route_email"));
 app.use(require("./Routes/Employeemaster_route"));
@@ -32,9 +33,9 @@ app.use(require("./Routes/dashdata_route"));
 app.use(require("./Routes/remarkRoutes"));
 app.use(require("./Routes/Upload_profile_route"));
 //Teams routes
-app.use("/api/user", teamsRoutes);   //MANAGER
-app.use("/api", remarkRoutes);       //M
-app.use("/api", dailReportViewManagerRoutes);     //M
+app.use("/api/user", teamsRoutes); //MANAGER
+app.use("/api", remarkRoutes); //M
+app.use("/api", dailReportViewManagerRoutes); //M
 app.use(require("./Routes/employee_route"));
 app.use("/api", projectReportRoutes);
 app.use("/api", employeeRoportToManagerRoutes);
@@ -45,6 +46,7 @@ app.use("/api", managerRemarksController);
 app.use("/api", projectPlanRoutes);
 app.use("/api", moduleTasksRoutes);
 app.use("/api", systemSettingsRoutes);
+app.use("/api", projectDelayRoutes);
 app.use(require("./Routes/employee_report_route"));
 app.use(require("./Routes/module_master_route"));
 app.use(require("./Routes/job_role_master_route"));
