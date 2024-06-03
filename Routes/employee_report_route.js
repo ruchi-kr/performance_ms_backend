@@ -168,7 +168,7 @@ router.get("/api/user/getReportsdw/:employee_id",protectedRoute, (req, res) => {
                                   'employee_allocated_time',e.allocated_time,
                                   'employee_actual_time',e.actual_time,
                                   'status',e.status,
-                                  'task_percent', e.task_percent  
+                                  'task_percent', e.task_percent
                                               )
                                           ),
                                           ']'
@@ -204,6 +204,8 @@ WHERE e.user_id = ?
     params.push(fromDate, toDate);
   }
 // else{
+  // 'task_completion_rate',((SELECT (COUNT*) FROM employee WHERE task_id = t.task_id AND status = 'completed')/(SELECT COUNT(*) FROM employee WHERE task_id = t.task_id)) *100,
+
 //   query += `AND DATE(e.created_at) >= DATE_ADD(NOW(), INTERVAL -28 DAY)`;
 // }
   query += `
