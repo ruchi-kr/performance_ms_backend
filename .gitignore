@@ -1,3 +1,4 @@
 /node_modules
-controllers\currentTimeController.js
+/controllers/currentTimeController.js
 .env
+.vscode
