@@ -5,7 +5,7 @@ const connection = mysql.createConnection({
   // user: "root",
   // password: "",
   // database: "performancems",
-  // timezone: "+00:00",
+  timezone: "+00:00",
   host:process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
