@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const projectPlanModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS project_plan (
-    plan_id int(20) NOT NULL,
+    plan_id int(20) NOT NULL AUTO_INCREMENT,
     project_id int(20) NOT NULL,
     module_id int(20) NOT NULL,
     stage enum('rfp','lost','won','inprocess','completed') NOT NULL,

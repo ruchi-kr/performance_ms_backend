@@ -4,7 +4,7 @@ const asyncConnection = require("../db2");
 const employeeMasterModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS employee_master (
-    employee_id int(11) NOT NULL,
+    employee_id int(11) NOT NULL AUTO_INCREMENT,
     manager_id int(20) DEFAULT NULL,
     designation_id int(20) NOT NULL,
     job_id int(20) DEFAULT NULL,

@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const jobRoleMasterModel = async () => {
   const query = `
     CREATE TABLE IF NOT EXISTS job_role_master (
-        job_id int(20) NOT NULL,
+        job_id int(20) NOT NULL AUTO_INCREMENT,
         job_role_name varchar(100) NOT NULL,
         PRIMARY KEY (job_id),
         UNIQUE KEY job_role_name (job_role_name)

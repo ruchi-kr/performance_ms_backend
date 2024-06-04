@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const managerRemarksModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS manager_remarks (
-    remark_id int(20) NOT NULL,
+    remark_id int(20) NOT NULL AUTO_INCREMENT,
     remark_type enum('week','month','quater','half','year') DEFAULT 'week',
     employee_id int(20) NOT NULL,
     manager_id int(20) NOT NULL,
