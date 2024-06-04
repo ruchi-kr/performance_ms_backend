@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const taskMasterModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS task_master (
-    task_id int(20) NOT NULL,
+    task_id int(20) NOT NULL AUTO_INCREMENT,
     task_name varchar(100) NOT NULL,
     description varchar(500) DEFAULT NULL,
     module_id int(11) DEFAULT NULL,

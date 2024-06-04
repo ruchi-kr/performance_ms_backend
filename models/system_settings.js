@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const systemSettingsModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS system_settings (
-    settings_id int(11) NOT NULL,
+    settings_id int(11) NOT NULL AUTO_INCREMENT,
     manHrsPerDay int(11) NOT NULL DEFAULT 8,
     PRIMARY KEY (settings_id)
   )

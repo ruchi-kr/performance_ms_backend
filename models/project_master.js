@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const projectMasterModel = async () => {
   const query = `
     CREATE TABLE IF NOT EXISTS project_master (
-      project_id int(50) NOT NULL,
+      project_id int(50) NOT NULL AUTO_INCREMENT,
       project_name varchar(100) NOT NULL,
       project_details varchar(250) DEFAULT NULL,
       schedule_start_date timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

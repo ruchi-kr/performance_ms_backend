@@ -3,7 +3,7 @@ const asyncConnection = require("../db2");
 const employeeModel = async () => {
   const query = `
   CREATE TABLE IF NOT EXISTS employee (
-    id int(50) NOT NULL,
+    id int(50) NOT NULL AUTO_INCREMENT,
     user_id int(20) NOT NULL,
     employee_id int(20) NOT NULL,
     manager_id int(20) DEFAULT NULL,
