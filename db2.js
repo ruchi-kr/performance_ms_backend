@@ -17,13 +17,10 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-
-  maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
-  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-
+  maxIdle: 10,
+  idleTimeout: 60000,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
 });
 
-// Exporting the pool so it can be used in other parts of the application
 module.exports = pool;
