@@ -1,13 +1,17 @@
-// db.js
 const mysql = require("mysql");
-
-  const connection = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "performancems",
-    time_zone: "+00:00",   
-  });
+require("dotenv").config();
+const connection = mysql.createConnection({
+  
+  // user: "root",
+  // password: "",
+  // database: "performancems",
+  // timezone: "+00:00",
+  host:process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
 
 // connection.connect((err) => {
 //   if (err) throw err;
@@ -25,16 +29,16 @@ const mysql = require("mysql");
 connection.connect((err) => {
   if (err) throw err;
   console.log("Connected to MySQL database");
-  // '+05:30'
-  connection.query("SET GLOBAL time_zone = '+00:00';", (err, results) => {
-    if(err){
-      console.log("error connecting to database", err);
-    }
-    else{
-      console.log("Time zone set GLOBAL time_zone = '+00:00'");
-    }
-    
-  });
+  // '+00:00'
+  // connection.query("SET GLOBAL time_zone = '+00:00';", (err, results) => {
+  //   if(err){
+  //     console.log("error connecting to database", err);
+  //   }
+  //   else{
+  //     console.log("Time zone set GLOBAL time_zone = '+00:00'");
+  //   }
+
+  // });
 });
 
 module.exports = connection;
@@ -62,5 +66,3 @@ module.exports = connection;
 // });
 
 // module.exports = connection;
-
-

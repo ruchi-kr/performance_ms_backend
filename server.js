@@ -2,10 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const mysql = require("mysql");
+require("./models").initDatabase()
 require("dotenv").config();
 const app = express();
 const port = 8000;
-console.log("dot env", process.env.HOST);
+console.log("dot env", process.env.DB_NAME);
+
 app.use(cors());
 app.use(express.json());
 
@@ -51,6 +53,6 @@ app.use(require("./Routes/employee_report_route"));
 app.use(require("./Routes/module_master_route"));
 app.use(require("./Routes/job_role_master_route"));
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Listening on port ${port}`);
 });
